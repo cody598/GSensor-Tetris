@@ -11,6 +11,7 @@
 #include <fcntl.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <math.h>
 #include <linux/i2c-dev.h>
 #include "ADXL345.h"
 #include "hwlib.h"
@@ -21,6 +22,25 @@
 #define HW_REGS_MASK ( HW_REGS_SPAN - 1 )
 #define FPGA_CHAR_BASE      0xC9000000
 
+// Define Grid
+#define ROWS 15
+#define COLUMNS 10
+#define SQUAREHEIGHT 30
+#define SQUAREWIDTH 15
+// Play Area + Border (Values Are In Regards To Pixels)
+#define TOPOFFSET 0
+#define BOTTOMOFFSET 480
+#define LEFTOFFSET 0 
+#define RIGHTOFFSET 180
+// Play Area (Values Are In Regards To Pixels)
+#define PLAYTOPOFFSET 0
+#define PLAYBOTTOMOFFSET 450
+#define PLAYLEFTOFFSET 15 
+#define PLAYRIGHTOFFSET 165
+// 
+#define SCORERIGHTOFFSET SCORERIGHTOFFSET + 15
+
+
 // Define Colors
 #define CYAN 0x07FF // I
 #define YELLOW 0xFF40 // O
@@ -29,7 +49,8 @@
 #define RED 0xF800 // Z
 #define BLUE 0x02B5 // J
 #define ORANGE 0xFC80 // L
-#define BLACK 0x0000
+#define BLACK 0x0000 
+#define GREY 0x9D13
 
 #define PHYSMEM_32(addr) (*((unsigned int *)(virtual_base + (addr & HW_REGS_MASK)))) // Char
 #define PHYSMEM_16(addr) (*((unsigned short *)(virtual_base + (addr & HW_REGS_MASK)))) // Pixel
@@ -85,6 +106,27 @@ bool ADXL345_REG_MULTI_READ(int file, uint8_t readaddr,uint8_t readdata[], uint8
 	return bSuccess;
 }
 
+/****************************************************************************************
+ * Draw a Colored Tetromino Square w/ a Black Border
+****************************************************************************************/
+void Tetromino_Square(int xgrid, int ygrid, short pixel_color, void *virtual_base)
+{ 
+	unsigned int pixel_ptr, row, col;
+	
+
+	VGA_box()
+}
+
+/****************************************************************************************
+ * Draw a Grey Colored Tetromino Square w/ a Black Border around the Grid
+****************************************************************************************/
+void VGA_SquareTetronimoBorderDraw(int x1, int y1, int x2, int y2, short pixel_color, void *virtual_base)
+{ 
+	unsigned int pixel_ptr, row, col;
+	
+
+	VGA_box()
+}
 
 /****************************************************************************************
  * Draw a filled rectangle on the VGA monitor 
@@ -101,6 +143,49 @@ void VGA_box(int x1, int y1, int x2, int y2, short pixel_color, void *virtual_ba
 			PHYSMEM_16(pixel_ptr) = pixel_color;		// set pixel color
 		}
 }
+
+
+/****************************************************************************************
+ * Initial Setup
+****************************************************************************************/
+void VGA_Tetris_Setup(void *virtual_base)
+{ 
+	VGA_Clear(virtual_base);	
+
+	// Draw Play Area Border
+	VGA_SquareTetronimoBorderDraw(virtual_base); 
+
+
+}
+
+/****************************************************************************************
+ * Draw |____ Tetromino (J)
+****************************************************************************************/
+
+
+/****************************************************************************************
+ * Draw ____| Tetromino (L)
+****************************************************************************************/
+
+/****************************************************************************************
+ * Draw Tetromino (T)
+****************************************************************************************/
+
+/****************************************************************************************
+ * Draw Tetromino (I)
+****************************************************************************************/
+
+/****************************************************************************************
+ * Draw Tetromino (Z)
+****************************************************************************************/
+
+/****************************************************************************************
+ * Draw Tetromino (O)
+****************************************************************************************/
+
+/****************************************************************************************
+ * Draw Tetromino (S)
+****************************************************************************************/
 
 /****************************************************************************************
  * Draw text to the VGA monitor 
