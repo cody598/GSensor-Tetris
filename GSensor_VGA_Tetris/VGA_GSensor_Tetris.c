@@ -46,6 +46,9 @@
 #define MAXSCORELENGTH 6
 #define SCORERIGHTOFFSET RIGHTOFFSET + 15
 #define SCORETOPOFFSET 60
+#define LINETOTALOFFSET 64
+#define LEVELTOTALOFFSET 64
+
 
 // Define Colors
 #define CYAN 0x07FF // I
@@ -112,115 +115,6 @@ bool ADXL345_REG_MULTI_READ(int file, uint8_t readaddr,uint8_t readdata[], uint8
 }
 
 /****************************************************************************************
- * Draw a Colored Tetromino Square w/ a Black Border
-****************************************************************************************/
-void Tetromino_Square(int xgrid, int ygrid, short pixel_color, void *virtual_base)
-{ 
-	unsigned int pixel_ptr, row, col;
-	
-
-	VGA_box()
-}
-
-/****************************************************************************************
- * Draw a Grey Colored Tetromino Square w/ a Black Border around the Grid
-****************************************************************************************/
-void VGA_SquareTetronimoBorderDraw(int x1, int y1, int x2, int y2, short pixel_color, void *virtual_base)
-{ 
-	unsigned int pixel_ptr, row, col;
-	
-
-	VGA_box()
-}
-
-/****************************************************************************************
- * Draw the Score based on the number from the Score Counter
-****************************************************************************************/
-void VGA_Draw_Score(int score, void *virtual_base)
-{ 
-	char tempArray[MAXSCORELENGTH];
-	sprintf(tempArray, "%d", score)
-	VGA_text (SCORERIGHTOFFSET + 64, SCORETOPOFFSET, tempArray, virtual_base);
-}
-
-/****************************************************************************************
- * Draw the Lines based on the number from the Line Counter
-****************************************************************************************/
-void VGA_Draw_Line(int lines, void *virtual_base)
-{ 
-	char tempArray[MAXSCORELENGTH];
-	sprintf(tempArray, "%d", lines)
-	VGA_text (SCORERIGHTOFFSET + 64, SCORETOPOFFSET + 2, tempArray, virtual_base);
-}
-
-/****************************************************************************************
- * Draw a filled rectangle on the VGA monitor 
-****************************************************************************************/
-void VGA_box(int x1, int y1, int x2, int y2, short pixel_color, void *virtual_base)
-{ 
-	unsigned int pixel_ptr, row, col;
-
-	/* assume that the box coordinates are valid */
-	for (row = y1; row <= y2; row++)
-		for (col = x1; col <= x2; ++col)
-		{
-			pixel_ptr = HW_OCRAM_BASE + (row << 10) + (col << 1);
-			PHYSMEM_16(pixel_ptr) = pixel_color;		// set pixel color
-		}
-}
-
-
-/****************************************************************************************
- * Initial Setup
-****************************************************************************************/
-void VGA_Tetris_Setup(void *virtual_base)
-{ 
-	VGA_Clear(virtual_base);	
-
-	// Draw Play Area Border
-	VGA_SquareTetronimoBorderDraw(virtual_base); 
-	
-	// Draw Score Area
-	char score_text[10] = "Score: \0";
-	char lines_text[10] = "Lines: \0";
-	char next_text[10] = "Next: \0";
-	VGA_text (SCORERIGHTOFFSET, SCORETOPOFFSET, score_text, virtual_base);
-	VGA_text (SCORERIGHTOFFSET, SCORETOPOFFSET + 2, lines_text, virtual_base);
-	VGA_text (SCORERIGHTOFFSET, SCORETOPOFFSET + 5, next_text, virtual_base);
-
-}
-
-/****************************************************************************************
- * Draw |____ Tetromino (J)
-****************************************************************************************/
-
-
-/****************************************************************************************
- * Draw ____| Tetromino (L)
-****************************************************************************************/
-
-/****************************************************************************************
- * Draw Tetromino (T)
-****************************************************************************************/
-
-/****************************************************************************************
- * Draw Tetromino (I)
-****************************************************************************************/
-
-/****************************************************************************************
- * Draw Tetromino (Z)
-****************************************************************************************/
-
-/****************************************************************************************
- * Draw Tetromino (O)
-****************************************************************************************/
-
-/****************************************************************************************
- * Draw Tetromino (S)
-****************************************************************************************/
-
-
-/****************************************************************************************
  * Draw text to the VGA monitor 
 ****************************************************************************************/
 void VGA_text(int x, int y, char * text_ptr, void *virtual_base)
@@ -239,6 +133,22 @@ void VGA_text(int x, int y, char * text_ptr, void *virtual_base)
 		++text_ptr;
 		++offset;
 	}
+}
+
+/****************************************************************************************
+ * Draw a filled rectangle on the VGA monitor 
+****************************************************************************************/
+void VGA_box(int x1, int y1, int x2, int y2, short pixel_color, void *virtual_base)
+{ 
+	unsigned int pixel_ptr, row, col;
+
+	/* assume that the box coordinates are valid */
+	for (row = y1; row <= y2; row++)
+		for (col = x1; col <= x2; ++col)
+		{
+			pixel_ptr = HW_OCRAM_BASE + (row << 10) + (col << 1);
+			PHYSMEM_16(pixel_ptr) = pixel_color;		// set pixel color
+		}
 }
 
 /****************************************************************************************
@@ -270,6 +180,259 @@ void VGA_Clear(void * virtual_base)
 			++offset;
 		}
 	}		
+}
+
+/****************************************************************************************
+ * Draw the Score based on the number from the Score Counter
+****************************************************************************************/
+void VGA_Draw_Score(int score, void *virtual_base)
+{ 
+	char tempArray[MAXSCORELENGTH];
+	sprintf(tempArray, "%d", score)
+	VGA_text (SCORERIGHTOFFSET + 64, SCORETOPOFFSET, tempArray, virtual_base);
+}
+
+/****************************************************************************************
+ * Draw the Lines based on the number from the Line Counter
+****************************************************************************************/
+void VGA_Draw_Line(int lines, void *virtual_base)
+{ 
+	char tempArray[MAXSCORELENGTH];
+	sprintf(tempArray, "%d", lines)
+	VGA_text (LINETOTALOFFSET, SCORETOPOFFSET + 2, tempArray, virtual_base);
+}
+
+/****************************************************************************************
+ * Draw the Level based on the number from the Level Counter
+****************************************************************************************/
+void VGA_Draw_Level(int level, void *virtual_base)
+{ 
+	char tempArray[MAXSCORELENGTH];
+	sprintf(tempArray, "%d", level)
+	VGA_text (LEVELTOTALOFFSET, SCORETOPOFFSET + 4, tempArray, virtual_base);
+}
+
+/****************************************************************************************
+ * Draw Next Tetronimo Tetronimoes
+****************************************************************************************/
+void VGA_Draw_Next_Tetronimo(int choice, void *virtual_base)
+{ 
+	switch(choice)
+	{
+		case 1:
+			// Draw I Tetronimo
+			break;
+		case 2:
+			// Draw J Tetronimo
+			break;
+		case 3:
+			// Draw L Tetronimo
+			break;
+		case 4:
+			// Draw O Tetronimo
+			break;
+		case 5:
+			// Draw S Tetronimo
+			break;
+		case 6:
+			// Draw T Tetronimo
+			break;
+		case 7:
+			// Draw Z Tetronimo
+			break;
+		default:
+			break;
+	}
+}
+
+/****************************************************************************************
+ * Initial Setup
+****************************************************************************************/
+void VGA_Tetris_Setup(void *virtual_base)
+{ 
+	VGA_Clear(virtual_base);	
+
+	// Draw Play Area Border
+	VGA_SquareTetronimoBorderDraw(virtual_base); 
+	
+	// Draw Score Area
+	char score_text[10] = "Score: \0";
+	char lines_text[10] = "Lines: \0";
+	char level_text[10] = "Level: \0";
+	char next_text[10] = "Next: \0";
+	VGA_text (SCORERIGHTOFFSET, SCORETOPOFFSET, score_text, virtual_base);
+	VGA_text (SCORERIGHTOFFSET, SCORETOPOFFSET + 2, lines_text, virtual_base);
+	VGA_text (SCORERIGHTOFFSET, SCORETOPOFFSET + 4, level_text, virtual_base);
+	VGA_text (SCORERIGHTOFFSET, SCORETOPOFFSET + 7, next_text, virtual_base);
+
+}
+
+/****************************************************************************************
+ * Draw a Grey Colored Tetromino Square w/ a Black Border around the Grid
+****************************************************************************************/
+void VGA_SquareTetronimoBorderDraw(int x1, int y1, int x2, int y2, short pixel_color, void *virtual_base)
+{ 
+	unsigned int pixel_ptr, row, col;
+	VGA_box()
+}
+
+/****************************************************************************************
+ * Draw Default Tetronimoes
+****************************************************************************************/
+void VGA_Draw_Tetronimo(int choice, void *virtual_base)
+{ 
+	switch(choice)
+	{
+		case 1:
+			// Draw I Tetronimo
+			break;
+		case 2:
+			// Draw J Tetronimo
+			break;
+		case 3:
+			// Draw L Tetronimo
+			break;
+		case 4:
+			// Draw O Tetronimo
+			break;
+		case 5:
+			// Draw S Tetronimo
+			break;
+		case 6:
+			// Draw T Tetronimo
+			break;
+		case 7:
+			// Draw Z Tetronimo
+			break;
+		default:
+			break;
+	}
+}
+
+/****************************************************************************************
+ * Rotate Tetronimoes CW
+****************************************************************************************/
+int VGA_Rotate_Tetronimo(int choice, int currentRotation, void *virtual_base)
+{ 
+	switch(choice)
+	{
+		case 1:
+			// Rotate I Tetronimo
+			switch(currentRotation)
+			{
+				case 1:
+					// Rotate from 1 to 2
+					break;
+				case 2:
+					// Rotate from 2 to 1
+					break;
+				default:
+					break;
+			}
+			break;
+		case 2:
+			// Rotate J Tetronimo
+			switch(currentRotation)
+			{
+				case 1:
+					// Rotate from 1 to 2
+					break;
+				case 2:
+					// Rotate from 2 to 3
+					break;
+				case 3:
+					// Rotate from 3 to 4
+					break;
+				case 4:
+					// Rotate from 4 to 1
+					break;
+				default:
+					break;
+			}
+			break;
+		case 3:
+			// Rotate L Tetronimo
+			switch(currentRotation)
+			{
+				case 1:
+					// Rotate from 1 to 2
+					break;
+				case 2:
+					// Rotate from 2 to 3
+					break;
+				case 3:
+					// Rotate from 3 to 4
+					break;
+				case 4:
+					// Rotate from 4 to 1
+					break;
+				default:
+					break;
+			break;
+		case 4:
+			// Rotate O Tetronimo
+			break;
+		case 5:
+			// Rotate S Tetronimo
+			switch(currentRotation)
+			{
+				case 1:
+					// Rotate from 1 to 2
+					break;
+				case 2:
+					// Rotate from 2 to 3
+					break;
+				case 3:
+					// Rotate from 3 to 4
+					break;
+				case 4:
+					// Rotate from 4 to 1
+					break;
+				default:
+					break;
+			break;
+		case 6:
+			// Rotate T Tetronimo
+			switch(currentRotation)
+			{
+				case 1:
+					// Rotate from 1 to 2
+					break;
+				case 2:
+					// Rotate from 2 to 3
+					break;
+				case 3:
+					// Rotate from 3 to 4
+					break;
+				case 4:
+					// Rotate from 4 to 1
+					break;
+				default:
+					break;
+			break;
+		case 7:
+			// Rotate Z Tetronimo
+			switch(currentRotation)
+			{
+				case 1:
+					// Rotate from 1 to 2
+					break;
+				case 2:
+					// Rotate from 2 to 3
+					break;
+				case 3:
+					// Rotate from 3 to 4
+					break;
+				case 4:
+					// Rotate from 4 to 1
+					break;
+				default:
+					break;
+			break;
+		default:
+			break;
+		return currentRotation;	
+	}
 }
 
 int main(int argc,char ** argv) {
@@ -343,14 +506,25 @@ int main(int argc,char ** argv) {
 	
 	printf("Do you want to start playing Tetris?\n ");
 	printf("[1] Yes\n ");
-	printf("[2] No\n ");
+	printf("Choice: ");
 	char c;
 	c =	getchar();
 	
 	// Start Tetris
-	if((c == 'Yes'))
+	if((c == '1'))
 	{	
 		bool changed = false;
+		int randTetronimoChoice = rand() % 8;
+		int gridData [10][15] = 0;
+		int lineCount = 0 
+		int level = 0;
+		int score = 0;
+		
+		VGA_Tetris_Setup(virtual_base);
+		VGA_Draw_Score(score, virtual_base);
+		VGA_Draw_Line(lineCount, virtual_base);
+		VGA_Draw_Level(level, virtual_base);
+		//VGA_Draw_Next_Tetronimo(virtual_base);
 		
 		while(bSuccess){
 			if (ADXL345_IsDataReady(file)){
@@ -358,9 +532,7 @@ int main(int argc,char ** argv) {
 				if (bSuccess){
 					xg = (int16_t) szXYZ[0]*mg_per_digi;
 					yg = (int16_t) szXYZ[1]*mg_per_digi;
-					zg = (int16_t) szXYZ[2]*mg_per_digi;
-					//printf("X=%d mg, Y=%d mg, Z=%d mg\r\n",(int16_t)szXYZ[0]*mg_per_digi, (int16_t)szXYZ[1]*mg_per_digi, (int16_t)szXYZ[2]*mg_per_digi);
-					
+					zg = (int16_t) szXYZ[2]*mg_per_digi;					
 					// Movement Detection
 					if(xg > 100){
 						changed = true;
@@ -390,7 +562,7 @@ int main(int argc,char ** argv) {
     
 	}
 	// Exit
-	else if((c == '2'))
+	else if((c != '1'))
 	{
 		exit(0);
     
