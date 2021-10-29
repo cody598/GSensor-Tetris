@@ -37,9 +37,15 @@
 #define PLAYBOTTOMOFFSET 450
 #define PLAYLEFTOFFSET 15 
 #define PLAYRIGHTOFFSET 165
-// 
-#define SCORERIGHTOFFSET SCORERIGHTOFFSET + 15
 
+// Define Scoring 
+#define BASESINGLELINEVALUE 40
+#define BASEDOUBLELINEVALUE 100
+#define BASETRIPLELINEVALUE 300
+#define BASEQUADRUPLELINEVALUE 1200
+#define MAXSCORELENGTH 6
+#define SCORERIGHTOFFSET RIGHTOFFSET + 15
+#define SCORETOPOFFSET 60
 
 // Define Colors
 #define CYAN 0x07FF // I
@@ -68,8 +74,7 @@ bool ADXL345_REG_WRITE(int file, uint8_t address, uint8_t value){
 	if (write(file, &szValue, sizeof(szValue)) == sizeof(szValue)){
 			bSuccess = true;
 	}
-		
-	
+
 	return bSuccess;		
 }
 
@@ -129,6 +134,26 @@ void VGA_SquareTetronimoBorderDraw(int x1, int y1, int x2, int y2, short pixel_c
 }
 
 /****************************************************************************************
+ * Draw the Score based on the number from the Score Counter
+****************************************************************************************/
+void VGA_Draw_Score(int score, void *virtual_base)
+{ 
+	char tempArray[MAXSCORELENGTH];
+	sprintf(tempArray, "%d", score)
+	VGA_text (SCORERIGHTOFFSET + 64, SCORETOPOFFSET, tempArray, virtual_base);
+}
+
+/****************************************************************************************
+ * Draw the Lines based on the number from the Line Counter
+****************************************************************************************/
+void VGA_Draw_Line(int lines, void *virtual_base)
+{ 
+	char tempArray[MAXSCORELENGTH];
+	sprintf(tempArray, "%d", lines)
+	VGA_text (SCORERIGHTOFFSET + 64, SCORETOPOFFSET + 2, tempArray, virtual_base);
+}
+
+/****************************************************************************************
  * Draw a filled rectangle on the VGA monitor 
 ****************************************************************************************/
 void VGA_box(int x1, int y1, int x2, int y2, short pixel_color, void *virtual_base)
@@ -154,7 +179,14 @@ void VGA_Tetris_Setup(void *virtual_base)
 
 	// Draw Play Area Border
 	VGA_SquareTetronimoBorderDraw(virtual_base); 
-
+	
+	// Draw Score Area
+	char score_text[10] = "Score: \0";
+	char lines_text[10] = "Lines: \0";
+	char next_text[10] = "Next: \0";
+	VGA_text (SCORERIGHTOFFSET, SCORETOPOFFSET, score_text, virtual_base);
+	VGA_text (SCORERIGHTOFFSET, SCORETOPOFFSET + 2, lines_text, virtual_base);
+	VGA_text (SCORERIGHTOFFSET, SCORETOPOFFSET + 5, next_text, virtual_base);
 
 }
 
@@ -186,6 +218,7 @@ void VGA_Tetris_Setup(void *virtual_base)
 /****************************************************************************************
  * Draw Tetromino (S)
 ****************************************************************************************/
+
 
 /****************************************************************************************
  * Draw text to the VGA monitor 
@@ -239,103 +272,6 @@ void VGA_Clear(void * virtual_base)
 	}		
 }
 
-/****************************************************************************************
- * Draw a line on the VGA monitor 
-****************************************************************************************/
-void VGA_line(int x1, int y1, int x2, int y2, short pixel_color, void *virtual_base)
-{ 
-	unsigned int pixel_ptr, row, col;
-	float slope, offset;
-	
-	if(y2-y1 == 0) // Zero Slope/Horizontal
-	{
-		if(x2-x1 > 0){
-		/* assume that the box coordinates are valid */
-			for (col = x1; col <= x2; col++)
-			{
-				row = y2;
-				pixel_ptr = HW_OCRAM_BASE + (row << 10) + (col << 1);
-				PHYSMEM_16(pixel_ptr) = pixel_color;		// set pixel color
-			}
-		}
-		else{
-			for (col = x2; col <= x1; col++)
-			{
-				row = y2;
-				pixel_ptr = HW_OCRAM_BASE + (row << 10) + (col << 1);
-				PHYSMEM_16(pixel_ptr) = pixel_color;		// set pixel color
-			}
-		}
-	}
-	else if((x2-x1 == 0)) // Undefined Slope/Infinity/Vertical
-	{
-		if(y2-y1 > 0){
-			
-		/* assume that the box coordinates are valid */
-			for (row = y1; row <= y2; row++)
-			{
-				col = x2;
-				pixel_ptr = HW_OCRAM_BASE + (row << 10) + (col << 1);
-				PHYSMEM_16(pixel_ptr) = pixel_color;		// set pixel color
-			}
-		}
-		else{
-			for (row = y2; row <= y1; row++)
-			{
-				col = x2;
-				pixel_ptr = HW_OCRAM_BASE + (row << 10) + (col << 1);
-				PHYSMEM_16(pixel_ptr) = pixel_color;		// set pixel color
-			}
-		}
-	}
-	else
-	{
-		slope = (float)(y2-y1)/(float)(x2-x1);
-		printf("Slope = %f\n", slope);
-		if(slope > 0 && (x2-x1 > 0) && (y2-y1 > 0)){ // CORRECT
-			
-		/* assume that the box coordinates are valid */
-			for (col = x1; col <= x2; col++) // Regular Linear Line
-			{
-				offset = (float)(y2 - slope*x2);
-				row = (int)(slope*col+offset);
-				pixel_ptr = HW_OCRAM_BASE + (row << 10) + (col << 1);
-				PHYSMEM_16(pixel_ptr) = pixel_color;		// set pixel color
-			}
-		}
-		else if((slope > 0) && (x2-x1 < 0) && (y2-y1 < 0)){ // INCORRECT
-			for (col = x2; col <= x1; col++) // Regular Linear Line
-			{
-				offset = (float)(y2 - slope*x2);
-				row = (int)(slope*col+offset);
-				pixel_ptr = HW_OCRAM_BASE + (row << 10) + (col << 1);
-				PHYSMEM_16(pixel_ptr) = pixel_color;		// set pixel color
-			}
-		}
-		else if((slope < 0) && (x2-x1 > 0) && (y2-y1 < 0)){ // CORRECT
-			for (col = x1; col <= x2; col++) // Regular Linear Line
-			{
-				offset = (float)(y2 - slope*x2);
-				row = (int)(slope*col+offset);
-				pixel_ptr = HW_OCRAM_BASE + (row << 10) + (col << 1);
-				PHYSMEM_16(pixel_ptr) = pixel_color;		// set pixel color
-			}			
-		}
-		else{ // INCORRECT
-			for (col = x2; col <= x1; col++) // Regular Linear Line
-			{
-				offset = (float)(y2 - slope*x2);
-				row = (int)(slope*col+offset);
-				pixel_ptr = HW_OCRAM_BASE + (row << 10) + (col << 1);
-				PHYSMEM_16(pixel_ptr) = pixel_color;		// set pixel color
-			}
-		}
-	}
-}
-
-// Test program for use with the DE1-SoC University Computer
-// 
-
 int main(int argc,char ** argv) {
 	
     void *virtual_base;
@@ -345,11 +281,10 @@ int main(int argc,char ** argv) {
 	bool bSuccess;
 	const int mg_per_digi = 4;
 	uint16_t szXYZ[3];
+	int delay = 1000000; // 1 second
 	
 	// Dyanmic Box Variables
 	int16_t xg, yg, zg;
-	uint16_t x1_new, x1_old, x2_new, x2_old, y1_new, y1_old, y2_new, y2_old;
-	uint16_t x_width, y_height, delta_move;
 	
 	if( ( fd = open( "/dev/mem", ( O_RDWR | O_SYNC ) ) ) == -1 ) {
 		printf( "ERROR: could not open \"/dev/mem\"...\n" );
@@ -405,38 +340,16 @@ int main(int argc,char ** argv) {
             printf("id=%02Xh\r\n", id);
     } 	
 	
-
-    
-    // Clear the screen
-	VGA_Clear(virtual_base);
-	//VGA_box(0, 0, 319,479, virtual_base);
-	//char text_top_row[40] = "Altera DE1-SoC\0";
-	//char text_bottom_row[40] = "Computer\0";
-    //VGA_text (34, 29, text_top_row, virtual_base);
-	//VGA_text (34, 30, text_bottom_row, virtual_base);
 	
-	delta_move = 1;
-	
-	printf("Do you want to read the GSensor to Move a box or Draw a Line?\n ");
-	printf("[1] Move a Box\n ");
-	printf("[2] Draw a Line\n ");
+	printf("Do you want to start playing Tetris?\n ");
+	printf("[1] Yes\n ");
+	printf("[2] No\n ");
 	char c;
 	c =	getchar();
 	
-	// Draw Box
-	if((c == '1'))
-	{
-		x_width = 20; // Initial Width
-		y_height = 40; // Initial Height
-		x1_new = 150;
-		x1_old = x1_new;
-		x2_new = x1_new + x_width;
-		x2_old = x2_new;
-		y1_new = 150;
-		y1_old = y1_new;
-		y2_new = y1_new + y_height;
-		y2_old = y2_new;
-		
+	// Start Tetris
+	if((c == 'Yes'))
+	{	
 		bool changed = false;
 		
 		while(bSuccess){
@@ -450,152 +363,36 @@ int main(int argc,char ** argv) {
 					
 					// Movement Detection
 					if(xg > 100){
-						x2_new = x2_new + delta_move;
-						x1_new = x1_new + delta_move;
-						//printf("X=%d  %d \n", x1_new, x2_new);
-						if(x2_new > 319)
-						{
-							printf("CHANGES  FAR RIGHT X=%d  %d \n", x1_new, x2_new);
-							x2_new = 319;
-							x1_new = x2_new - x_width;
-						}
 						changed = true;
 					}
 					else if(xg < -100){
-						x2_new = x2_new - delta_move;
-						x1_new = x1_new - delta_move;
-						//printf("X=%d  %d \n", x1_new, x2_new);
-						if(x1_new < 0 || x1_new > 319)
-						{
-							printf("CHANGES  FAR LEFT X=%d  %d \n", x1_new, x2_new);
-							x1_new = 0;
-							x2_new = x1_new + x_width;
-						}
+
 						changed = true;
 					}
 				
 					if(yg > 100){
-						y2_new = y2_new - 2*delta_move;
-						y1_new = y1_new - 2*delta_move;
-						printf("Y=%d  %d \n", y1_new, y2_new);
-						if((y1_new > 479 || y1_new < 0) && y2_new > 0)
-						{
-							printf("CHANGES BOTTOM X=%d  %d \n", y1_new, y2_new);
-							y1_new = 0;
-							y2_new = y1_new + y_height;
-						}
+						
 						changed = true;
 					}
 					else if(yg < -100){
 						
-						y2_new = y2_new + 2*delta_move;
-						y1_new = y1_new + 2*delta_move;
-						printf("Y=%d  %d \n", y1_new, y2_new);
-						if(y1_new < 479 && y2_new > 479)
-						{
-							printf("CHANGES TOP X=%d  %d \n", y1_new, y2_new);
-							y2_new = 479;
-							y1_new = y2_new - y_height;
-						}
 						changed = true;
 					}
 					if(changed == true)
 					{
-						//VGA_Clear(virtual_base);
-						VGA_box(x1_old,y1_old,x2_old,y2_old, 0x0000, virtual_base); // Erase the Box
-						VGA_box(x1_new,y1_new,x2_new,y2_new, 0x2533, virtual_base); // Draw new Box
-						x1_old = x1_new;
-						x2_old = x2_new;
-						y1_old = y1_new;
-						y2_old = y2_new;
 						changed = false;
 					}
 					
-					usleep(50);
+					usleep(delay);
 				}
 			}
 		}
     
 	}
-	// Draw Line
+	// Exit
 	else if((c == '2'))
 	{
-		x1_old = 150;
-		x1_new = x1_old;
-		y1_old = 150;
-		y1_new = y1_old;
-		x2_new = 150;
-		x2_old = x2_new;
-		y2_new = 150;
-		y2_old = y2_new;
-		
-		bool changed = false;
-		
-		while(bSuccess){
-			if (ADXL345_IsDataReady(file)){
-				bSuccess = ADXL345_XYZ_Read(file, szXYZ);
-				
-				if (bSuccess){
-					xg = (int16_t) szXYZ[0]*mg_per_digi;
-					yg = (int16_t) szXYZ[1]*mg_per_digi;
-					zg = (int16_t) szXYZ[2]*mg_per_digi;
-					//printf("X=%d mg, Y=%d mg, Z=%d mg\r\n",(int16_t)szXYZ[0]*mg_per_digi, (int16_t)szXYZ[1]*mg_per_digi, (int16_t)szXYZ[2]*mg_per_digi);
-					
-					// Movement Detection
-					if(xg > 100){
-						x2_new = x2_new + delta_move;
-						printf("X2 = %d\n", (int)x2_new);
-						if(x2_new > 319)
-						{
-							x2_new = 319;
-						}
-						changed = true;
-					}
-					else if(xg < -100){
-						x2_new = x2_new - delta_move;
-						printf("X2 = %d\n", (int)x2_new);
-						if(x2_new < 0 || x2_new > 319)
-						{
-							x2_new = 0;
-						}
-						changed = true;
-					}
-				
-					if(yg > 100){
-						y2_new = y2_new - 2*delta_move;
-						printf("Y2 = %d\n", (int)y2_new);
-						if(y2_new < 0 || y2_new > 479)
-						{
-							y2_new = 0;
-						}
-						changed = true;
-					}
-					else if(yg < -100){
-						y2_new = y2_new + 2*delta_move;
-						printf("Y2 = %d\n", (int)y2_new);
-						if(y2_new > 479)
-						{
-							y2_new = 479;
-						}
-						changed = true;
-					}
-
-					if(changed == true)
-					{
-
-						//VGA_Clear(virtual_base);
-						VGA_line(x1_new,y1_new,x2_old,y2_old, 0x0000, virtual_base); // Erase the Line
-						VGA_line(x1_old,y1_old,x2_new,y2_new, 0xABCD, virtual_base); // Draw new Line
-						//VGA_line(x1_new,y1_new,x2_new,y2_new, 0x2533, virtual_base); // Draw new Line
-						y2_old = y2_new; 
-						x2_old = x2_new; 
-						changed = false;
-					}
-			
-					usleep(500);
-				}
-			}
-		}
+		exit(0);
     
 	}
 	if (!bSuccess)
