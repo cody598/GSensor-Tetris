@@ -44,10 +44,19 @@
 #define BASETRIPLELINEVALUE 300
 #define BASEQUADRUPLELINEVALUE 1200
 #define MAXSCORELENGTH 6
-#define SCORERIGHTOFFSET RIGHTOFFSET + 15
-#define SCORETOPOFFSET 60
-#define LINETOTALOFFSET 64
-#define LEVELTOTALOFFSET 64
+
+#define SCORETEXTOFFSET 25
+
+#define SCORETOPOFFSET 8
+#define LINETOPOFFSET 10
+#define LEVELTOPOFFSET 12
+#define NEXTPIECETOPOFFSET 15
+
+#define SCORELEFTOFFSET SCORETEXTOFFSET + 8
+#define LINELEFTOFFSET SCORETEXTOFFSET + 7
+#define LEVELLEFTOFFSET SCORETEXTOFFSET + 8
+#define NEXTPIECELEFTOFFSET SCORETEXTOFFSET + 7
+
 
 
 // Define Colors
@@ -189,7 +198,7 @@ void VGA_Draw_Score(int score, void *virtual_base)
 { 
 	char tempArray[MAXSCORELENGTH];
 	sprintf(tempArray, "%d", score)
-	VGA_text (SCORERIGHTOFFSET + 64, SCORETOPOFFSET, tempArray, virtual_base);
+	VGA_text (SCORELEFTOFFSET, SCORETOPOFFSET, tempArray, virtual_base);
 }
 
 /****************************************************************************************
@@ -199,7 +208,7 @@ void VGA_Draw_Line(int lines, void *virtual_base)
 { 
 	char tempArray[MAXSCORELENGTH];
 	sprintf(tempArray, "%d", lines)
-	VGA_text (LINETOTALOFFSET, SCORETOPOFFSET + 2, tempArray, virtual_base);
+	VGA_text (LINELEFTOFFSET, LINETOPOFFSET, tempArray, virtual_base);
 }
 
 /****************************************************************************************
@@ -209,7 +218,7 @@ void VGA_Draw_Level(int level, void *virtual_base)
 { 
 	char tempArray[MAXSCORELENGTH];
 	sprintf(tempArray, "%d", level)
-	VGA_text (LEVELTOTALOFFSET, SCORETOPOFFSET + 4, tempArray, virtual_base);
+	VGA_text (LEVELLEFTOFFSET, LEVELTOPOFFSET, tempArray, virtual_base);
 }
 
 /****************************************************************************************
@@ -260,10 +269,10 @@ void VGA_Tetris_Setup(void *virtual_base)
 	char lines_text[10] = "Lines: \0";
 	char level_text[10] = "Level: \0";
 	char next_text[10] = "Next: \0";
-	VGA_text (SCORERIGHTOFFSET, SCORETOPOFFSET, score_text, virtual_base);
-	VGA_text (SCORERIGHTOFFSET, SCORETOPOFFSET + 2, lines_text, virtual_base);
-	VGA_text (SCORERIGHTOFFSET, SCORETOPOFFSET + 4, level_text, virtual_base);
-	VGA_text (SCORERIGHTOFFSET, SCORETOPOFFSET + 7, next_text, virtual_base);
+	VGA_text (SCORETEXTOFFSET, SCORETOPOFFSET, score_text, virtual_base);
+	VGA_text (SCORETEXTOFFSET, SCORETOPOFFSET, lines_text, virtual_base);
+	VGA_text (SCORETEXTOFFSET, LEVELTOPOFFSET, level_text, virtual_base);
+	VGA_text (SCORETEXTOFFSET, NEXTPIECETOPOFFSET, next_text, virtual_base);
 
 }
 
