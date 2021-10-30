@@ -141,7 +141,7 @@ void VGA_Clear(void * virtual_base)
 void VGA_Draw_Score(int score, void *virtual_base)
 { 
 	char tempArray[MAXSCORELENGTH];
-	sprintf(tempArray, "%d", score)
+	sprintf(tempArray, "%d", score); 
 	VGA_text (SCORELEFTOFFSET, SCORETOPOFFSET, tempArray, virtual_base);
 }
 
@@ -151,7 +151,7 @@ void VGA_Draw_Score(int score, void *virtual_base)
 void VGA_Draw_Line(int lines, void *virtual_base)
 { 
 	char tempArray[MAXSCORELENGTH];
-	sprintf(tempArray, "%d", lines)
+	sprintf(tempArray, "%d", lines);
 	VGA_text (LINELEFTOFFSET, LINETOPOFFSET, tempArray, virtual_base);
 }
 
@@ -161,8 +161,19 @@ void VGA_Draw_Line(int lines, void *virtual_base)
 void VGA_Draw_Level(int level, void *virtual_base)
 { 
 	char tempArray[MAXSCORELENGTH];
-	sprintf(tempArray, "%d", level)
+	sprintf(tempArray, "%d", level);
 	VGA_text (LEVELLEFTOFFSET, LEVELTOPOFFSET, tempArray, virtual_base);
+}
+
+/****************************************************************************************
+ * Draw Tetronimo Square
+****************************************************************************************/
+void VGA_Draw_Tetronimo_Square(int xgrid, int ygrid, short color, void *virtual_base)
+{
+	// int xGridStart = 
+	// VGA_box
+
+
 }
 
 /****************************************************************************************
@@ -206,26 +217,88 @@ void VGA_Tetris_Setup(void *virtual_base)
 	VGA_Clear(virtual_base);	
 
 	// Draw Play Area Border
-	VGA_SquareTetronimoBorderDraw(virtual_base); 
+	//VGA_SquareTetronimoBorderDraw(virtual_base); 
 	
 	// Draw Score Area
 	char score_text[10] = "Score: \0";
-	char lines_text[10] = "Lines: \0";
+	char lines_text[10] = "Lines:  \0";
 	char level_text[10] = "Level: \0";
 	char next_text[10] = "Next: \0";
 	VGA_text (SCORETEXTOFFSET, SCORETOPOFFSET, score_text, virtual_base);
-	VGA_text (SCORETEXTOFFSET, SCORETOPOFFSET, lines_text, virtual_base);
+	VGA_text (SCORETEXTOFFSET, LINETOPOFFSET, lines_text, virtual_base);
 	VGA_text (SCORETEXTOFFSET, LEVELTOPOFFSET, level_text, virtual_base);
 	VGA_text (SCORETEXTOFFSET, NEXTPIECETOPOFFSET, next_text, virtual_base);
 }
 
 /****************************************************************************************
+ * Table Setup
+****************************************************************************************/
+/*
+void VGA_Tetris_Array_Setup(int **tempArrayCoordinates, short **tempArrayColors)
+{ 
+		int i, j, xPosition, yPosition;
+
+		for(i = 0; i < 10; i++)
+		{
+			for (j = 0; j < 15; j++)
+			{
+				tempArrayColors[i][j] = 0x0000;
+			}
+		}
+		
+		
+		for(j = 0; j < 15; j++)
+		{
+			xPosition = 0;
+			yPosition = 0;
+			for(i = 0; i < 20; i++)
+			{
+				if(i % 2 == 0)
+				{
+					xPosition = xPosition + ((i/2) * SQUAREWIDTH);
+					tempArrayCoordinates[i][j] = xPosition;
+				}
+				else
+				{
+					yPosition = yPosition + (j * SQUAREHEIGHT);
+					tempArrayCoordinates[i][j] = yPosition;
+					printf("x: %d  y: %d \n", tempArrayCoordinates[i-1][j], tempArrayCoordinates[i][j] );
+				}
+				
+			}
+		}
+}
+*/
+
+/****************************************************************************************
  * Draw a Grey Colored Tetromino Square w/ a Black Border around the Grid
 ****************************************************************************************/
-void VGA_SquareTetronimoBorderDraw(int x1, int y1, int x2, int y2, short pixel_color, void *virtual_base)
+void VGA_SquareTetronimoBorderDraw(short color, void *virtual_base)
 { 
-	unsigned int pixel_ptr, row, col;
-	VGA_box()
+	int row, col;
+	for(row = 0; row < ROWS+1; row++)
+		for(col = 0; col < COLUMNS+2; col++)
+		{
+			
+			if(col == 0 || col == COLUMNS+1 || row == ROWS)
+			{
+				//Outer Box
+				VGA_box(SQUAREWIDTH*col,
+				SQUAREHEIGHT*row,
+				SQUAREWIDTH*(col+1),
+				SQUAREHEIGHT*(row+1),
+				0,
+				virtual_base);
+					
+				//Inner Box
+				VGA_box(SQUAREWIDTH*col + 1,
+				SQUAREHEIGHT*row + 1,
+				SQUAREWIDTH*(col+1) - 1,
+				SQUAREHEIGHT*(row+1) - 1,
+				color,
+				virtual_base);
+			}
+		}
 }
 
 /****************************************************************************************
@@ -320,9 +393,15 @@ int VGA_Rotate_Tetronimo(int choice, int currentRotation, void *virtual_base)
 					break;
 				default:
 					break;
+			}
 			break;
 		case 4:
 			// Rotate O Tetronimo
+			switch(currentRotation)
+			{
+				case 1:
+					break;
+			}
 			break;
 		case 5:
 			// Rotate S Tetronimo
@@ -342,6 +421,7 @@ int VGA_Rotate_Tetronimo(int choice, int currentRotation, void *virtual_base)
 					break;
 				default:
 					break;
+			}
 			break;
 		case 6:
 			// Rotate T Tetronimo
@@ -361,6 +441,7 @@ int VGA_Rotate_Tetronimo(int choice, int currentRotation, void *virtual_base)
 					break;
 				default:
 					break;
+			}
 			break;
 		case 7:
 			// Rotate Z Tetronimo
@@ -380,11 +461,12 @@ int VGA_Rotate_Tetronimo(int choice, int currentRotation, void *virtual_base)
 					break;
 				default:
 					break;
+			}
 			break;
 		default:
 			break;
-		return currentRotation;	
 	}
+	return currentRotation;
 }
 
 int main(int argc,char ** argv) {
@@ -455,7 +537,7 @@ int main(int argc,char ** argv) {
             printf("id=%02Xh\r\n", id);
     } 	
 	
-	
+	VGA_Clear(virtual_base);
 	printf("Do you want to start playing Tetris?\n ");
 	printf("[1] Yes\n ");
 	printf("Choice: ");
@@ -467,15 +549,29 @@ int main(int argc,char ** argv) {
 	{	
 		bool changed = false;
 		int randTetronimoChoice = rand() % 8;
-		int gridData [10][15] = 0;
-		int lineCount = 0 
+		short gridData [10][15];	
+		unsigned int gridCoordinates[10][15];
+
+		int i, j;
+
+		for(i = 0; i < 10; i++)
+		{
+			for (j = 0; j < 15; j++)
+			{
+				gridData[i][j] = 0x0000;
+			}
+		}
+
+		int lineCount = 0;
 		int level = 0;
 		int score = 0;
 		
 		VGA_Tetris_Setup(virtual_base);
+		//VGA_Tetris_Array_Setup(gridCoordinates, gridData);
 		VGA_Draw_Score(score, virtual_base);
 		VGA_Draw_Line(lineCount, virtual_base);
 		VGA_Draw_Level(level, virtual_base);
+		VGA_SquareTetronimoBorderDraw(0xFFFF, virtual_base);	//draw border
 		//VGA_Draw_Next_Tetronimo(virtual_base);
 		
 		while(bSuccess){
