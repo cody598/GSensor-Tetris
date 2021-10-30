@@ -229,27 +229,6 @@ void VGA_Tetris_Setup(void *virtual_base)
 	VGA_text (SCORETEXTOFFSET, LINETOPOFFSET, lines_text, virtual_base);
 	VGA_text (SCORETEXTOFFSET, LEVELTOPOFFSET, level_text, virtual_base);
 	VGA_text (SCORETEXTOFFSET, NEXTPIECETOPOFFSET, next_text, virtual_base);
-	
-	char next_side[3] = "|\0";
-	char next_top[3] = "_\0";
-	// Draw Next Border
-	int i,j;
-	for( i = NEXTPIECEBORDERLEFTPOFFSET + 1; i < NEXTPIECEBORDERRIGHTPOFFSET - 1; i++)
-	{
-		VGA_text (i, NEXTPIECEBORDERTOPPOFFSET, next_top, virtual_base);
-	}
-	for( i = NEXTPIECEBORDERLEFTPOFFSET + 1; i < NEXTPIECEBORDERRIGHTPOFFSET - 1; i++)
-	{
-		VGA_text (i, NEXTPIECEBORDERBOTTOMOFFSET, next_top, virtual_base);
-	}
-	for( j = NEXTPIECEBORDERTOPPOFFSET + 1; i < NEXTPIECEBORDERTOPPOFFSET - 1; i++)
-	{
-		VGA_text (NEXTPIECEBORDERLEFTPOFFSET, j, next_side, virtual_base);
-	}
-	for( j = NEXTPIECEBORDERTOPPOFFSET + 1; i < NEXTPIECEBORDERTOPPOFFSET - 1; i++)
-	{
-		VGA_text (NEXTPIECEBORDERRIGHTPOFFSET - 1, j, next_side, virtual_base);
-	}
 }
 
 /****************************************************************************************
