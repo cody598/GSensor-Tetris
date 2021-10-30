@@ -1,0 +1,659 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/1999/REC-html401-19991224/strict.dtd">
+<html>
+<head>
+<META http-equiv=Content-Type content="text/html; charset=UTF-8">
+<title>Exported from Notepad++</title>
+<style type="text/css">
+span {
+	font-family: 'Courier New';
+	font-size: 10pt;
+	color: #000000;
+}
+.sc0 {
+}
+.sc1 {
+	color: #008000;
+}
+.sc2 {
+	color: #008000;
+}
+.sc3 {
+	color: #008080;
+}
+.sc4 {
+	color: #FF8000;
+}
+.sc5 {
+	font-weight: bold;
+	color: #0000FF;
+}
+.sc6 {
+	color: #808080;
+}
+.sc7 {
+	color: #808080;
+}
+.sc9 {
+	color: #804000;
+}
+.sc10 {
+	font-weight: bold;
+	color: #000080;
+}
+.sc11 {
+}
+.sc16 {
+	color: #8000FF;
+}
+</style>
+</head>
+<body>
+<div style="float: left; white-space: pre; line-height: 1; background: #FFFFFF; "><span class="sc9">#include &lt;errno.h&gt;
+#include &lt;string.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;unistd.h&gt;
+#include &lt;fcntl.h&gt;
+#include &lt;sys/mman.h&gt;
+#include &lt;sys/ioctl.h&gt;
+#include &lt;sys/types.h&gt;
+#include &lt;sys/stat.h&gt;
+#include &lt;fcntl.h&gt;
+#include &lt;stdint.h&gt;
+#include &lt;stdbool.h&gt;
+#include &lt;math.h&gt;
+#include &lt;linux/i2c-dev.h&gt;
+#include "ADXL345.h"
+#include "VGA_GSensor_Tetris.h"
+#include "hwlib.h"
+</span><span class="sc0">
+</span><span class="sc3">/****************************************************************************************
+ * GSensor Functions ADXL345
+****************************************************************************************/</span><span class="sc0">
+</span><span class="sc16">bool</span><span class="sc0"> </span><span class="sc11">ADXL345_REG_WRITE</span><span class="sc10">(</span><span class="sc16">int</span><span class="sc0"> </span><span class="sc11">file</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc16">uint8_t</span><span class="sc0"> </span><span class="sc11">address</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc16">uint8_t</span><span class="sc0"> </span><span class="sc11">value</span><span class="sc10">){</span><span class="sc0">
+    </span><span class="sc16">bool</span><span class="sc0"> </span><span class="sc11">bSuccess</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc5">false</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc16">uint8_t</span><span class="sc0"> </span><span class="sc11">szValue</span><span class="sc10">[</span><span class="sc4">2</span><span class="sc10">];</span><span class="sc0">
+    
+    </span><span class="sc2">// write to define register
+</span><span class="sc0">    </span><span class="sc11">szValue</span><span class="sc10">[</span><span class="sc4">0</span><span class="sc10">]</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">address</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc11">szValue</span><span class="sc10">[</span><span class="sc4">1</span><span class="sc10">]</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">value</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc5">if</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">write</span><span class="sc10">(</span><span class="sc11">file</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc10">&amp;</span><span class="sc11">szValue</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc5">sizeof</span><span class="sc10">(</span><span class="sc11">szValue</span><span class="sc10">))</span><span class="sc0"> </span><span class="sc10">==</span><span class="sc0"> </span><span class="sc5">sizeof</span><span class="sc10">(</span><span class="sc11">szValue</span><span class="sc10">)){</span><span class="sc0">
+            </span><span class="sc11">bSuccess</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc5">true</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc10">}</span><span class="sc0">
+
+    </span><span class="sc5">return</span><span class="sc0"> </span><span class="sc11">bSuccess</span><span class="sc10">;</span><span class="sc0">        
+</span><span class="sc10">}</span><span class="sc0">
+
+</span><span class="sc16">bool</span><span class="sc0"> </span><span class="sc11">ADXL345_REG_READ</span><span class="sc10">(</span><span class="sc16">int</span><span class="sc0"> </span><span class="sc11">file</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc16">uint8_t</span><span class="sc0"> </span><span class="sc11">address</span><span class="sc10">,</span><span class="sc16">uint8_t</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc11">value</span><span class="sc10">){</span><span class="sc0">
+    </span><span class="sc16">bool</span><span class="sc0"> </span><span class="sc11">bSuccess</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc5">false</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc16">uint8_t</span><span class="sc0"> </span><span class="sc11">Value</span><span class="sc10">;</span><span class="sc0">
+    
+    </span><span class="sc2">// write to define register
+</span><span class="sc0">    </span><span class="sc5">if</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">write</span><span class="sc10">(</span><span class="sc11">file</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc10">&amp;</span><span class="sc11">address</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc5">sizeof</span><span class="sc10">(</span><span class="sc11">address</span><span class="sc10">))</span><span class="sc0"> </span><span class="sc10">==</span><span class="sc0"> </span><span class="sc5">sizeof</span><span class="sc10">(</span><span class="sc11">address</span><span class="sc10">)){</span><span class="sc0">
+    
+        </span><span class="sc2">// read back value
+</span><span class="sc0">        </span><span class="sc5">if</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">read</span><span class="sc10">(</span><span class="sc11">file</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc10">&amp;</span><span class="sc11">Value</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc5">sizeof</span><span class="sc10">(</span><span class="sc11">Value</span><span class="sc10">))</span><span class="sc0"> </span><span class="sc10">==</span><span class="sc0"> </span><span class="sc5">sizeof</span><span class="sc10">(</span><span class="sc11">Value</span><span class="sc10">)){</span><span class="sc0">
+            </span><span class="sc10">*</span><span class="sc11">value</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">Value</span><span class="sc10">;</span><span class="sc0">
+            </span><span class="sc11">bSuccess</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc5">true</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc10">}</span><span class="sc0">
+    </span><span class="sc10">}</span><span class="sc0">
+        
+    
+    </span><span class="sc5">return</span><span class="sc0"> </span><span class="sc11">bSuccess</span><span class="sc10">;</span><span class="sc0">    
+</span><span class="sc10">}</span><span class="sc0">
+
+</span><span class="sc16">bool</span><span class="sc0"> </span><span class="sc11">ADXL345_REG_MULTI_READ</span><span class="sc10">(</span><span class="sc16">int</span><span class="sc0"> </span><span class="sc11">file</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc16">uint8_t</span><span class="sc0"> </span><span class="sc11">readaddr</span><span class="sc10">,</span><span class="sc16">uint8_t</span><span class="sc0"> </span><span class="sc11">readdata</span><span class="sc10">[],</span><span class="sc0"> </span><span class="sc16">uint8_t</span><span class="sc0"> </span><span class="sc11">len</span><span class="sc10">){</span><span class="sc0">
+    </span><span class="sc16">bool</span><span class="sc0"> </span><span class="sc11">bSuccess</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc5">false</span><span class="sc10">;</span><span class="sc0">
+
+    </span><span class="sc2">// write to define register
+</span><span class="sc0">    </span><span class="sc5">if</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">write</span><span class="sc10">(</span><span class="sc11">file</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc10">&amp;</span><span class="sc11">readaddr</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc5">sizeof</span><span class="sc10">(</span><span class="sc11">readaddr</span><span class="sc10">))</span><span class="sc0"> </span><span class="sc10">==</span><span class="sc0"> </span><span class="sc5">sizeof</span><span class="sc10">(</span><span class="sc11">readaddr</span><span class="sc10">)){</span><span class="sc0">
+        </span><span class="sc2">// read back value
+</span><span class="sc0">        </span><span class="sc5">if</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">read</span><span class="sc10">(</span><span class="sc11">file</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">readdata</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">len</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">==</span><span class="sc0"> </span><span class="sc11">len</span><span class="sc10">){</span><span class="sc0">
+            </span><span class="sc11">bSuccess</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc5">true</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc10">}</span><span class="sc0">
+    </span><span class="sc10">}</span><span class="sc0">
+    
+        
+    </span><span class="sc5">return</span><span class="sc0"> </span><span class="sc11">bSuccess</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc10">}</span><span class="sc0">
+
+</span><span class="sc3">/****************************************************************************************
+ * Draw text to the VGA monitor 
+****************************************************************************************/</span><span class="sc0">
+</span><span class="sc16">void</span><span class="sc0"> </span><span class="sc11">VGA_text</span><span class="sc10">(</span><span class="sc16">int</span><span class="sc0"> </span><span class="sc11">x</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc16">int</span><span class="sc0"> </span><span class="sc11">y</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc16">char</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc0"> </span><span class="sc11">text_ptr</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc16">void</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc11">virtual_base</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc10">{</span><span class="sc0">
+    </span><span class="sc16">int</span><span class="sc0"> </span><span class="sc11">offset</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc16">unsigned</span><span class="sc0"> </span><span class="sc16">int</span><span class="sc0">  </span><span class="sc11">char_ptr</span><span class="sc10">;</span><span class="sc0">
+
+    </span><span class="sc1">/* assume that the text string fits on one line */</span><span class="sc0">
+    </span><span class="sc11">offset</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">y</span><span class="sc0"> </span><span class="sc10">&lt;&lt;</span><span class="sc0"> </span><span class="sc4">7</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">+</span><span class="sc0"> </span><span class="sc11">x</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc5">while</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc0"> </span><span class="sc10">*(</span><span class="sc11">text_ptr</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">)</span><span class="sc0">
+    </span><span class="sc10">{</span><span class="sc0">
+        </span><span class="sc11">char_ptr</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0">  </span><span class="sc11">FPGA_CHAR_BASE</span><span class="sc0"> </span><span class="sc10">+</span><span class="sc0"> </span><span class="sc11">offset</span><span class="sc10">;</span><span class="sc0">
+        
+        </span><span class="sc11">PHYSMEM_32</span><span class="sc10">(</span><span class="sc11">char_ptr</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc10">*(</span><span class="sc11">text_ptr</span><span class="sc10">);</span><span class="sc0">
+        
+        </span><span class="sc10">++</span><span class="sc11">text_ptr</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc10">++</span><span class="sc11">offset</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc10">}</span><span class="sc0">
+</span><span class="sc10">}</span><span class="sc0">
+
+</span><span class="sc3">/****************************************************************************************
+ * Draw a filled rectangle on the VGA monitor 
+****************************************************************************************/</span><span class="sc0">
+</span><span class="sc16">void</span><span class="sc0"> </span><span class="sc11">VGA_box</span><span class="sc10">(</span><span class="sc16">int</span><span class="sc0"> </span><span class="sc11">x1</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc16">int</span><span class="sc0"> </span><span class="sc11">y1</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc16">int</span><span class="sc0"> </span><span class="sc11">x2</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc16">int</span><span class="sc0"> </span><span class="sc11">y2</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc16">short</span><span class="sc0"> </span><span class="sc11">pixel_color</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc16">void</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc11">virtual_base</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc10">{</span><span class="sc0"> 
+    </span><span class="sc16">unsigned</span><span class="sc0"> </span><span class="sc16">int</span><span class="sc0"> </span><span class="sc11">pixel_ptr</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">row</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">col</span><span class="sc10">;</span><span class="sc0">
+
+    </span><span class="sc1">/* assume that the box coordinates are valid */</span><span class="sc0">
+    </span><span class="sc5">for</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">row</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">y1</span><span class="sc10">;</span><span class="sc0"> </span><span class="sc11">row</span><span class="sc0"> </span><span class="sc10">&lt;=</span><span class="sc0"> </span><span class="sc11">y2</span><span class="sc10">;</span><span class="sc0"> </span><span class="sc11">row</span><span class="sc10">++)</span><span class="sc0">
+        </span><span class="sc5">for</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">col</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">x1</span><span class="sc10">;</span><span class="sc0"> </span><span class="sc11">col</span><span class="sc0"> </span><span class="sc10">&lt;=</span><span class="sc0"> </span><span class="sc11">x2</span><span class="sc10">;</span><span class="sc0"> </span><span class="sc10">++</span><span class="sc11">col</span><span class="sc10">)</span><span class="sc0">
+        </span><span class="sc10">{</span><span class="sc0">
+            </span><span class="sc11">pixel_ptr</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">HW_OCRAM_BASE</span><span class="sc0"> </span><span class="sc10">+</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">row</span><span class="sc0"> </span><span class="sc10">&lt;&lt;</span><span class="sc0"> </span><span class="sc4">10</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">+</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">col</span><span class="sc0"> </span><span class="sc10">&lt;&lt;</span><span class="sc0"> </span><span class="sc4">1</span><span class="sc10">);</span><span class="sc0">
+            </span><span class="sc11">PHYSMEM_16</span><span class="sc10">(</span><span class="sc11">pixel_ptr</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">pixel_color</span><span class="sc10">;</span><span class="sc0">        </span><span class="sc2">// set pixel color
+</span><span class="sc0">        </span><span class="sc10">}</span><span class="sc0">
+</span><span class="sc10">}</span><span class="sc0">
+
+</span><span class="sc3">/****************************************************************************************
+ * Clear anything on the VGA monitor 
+****************************************************************************************/</span><span class="sc0">
+</span><span class="sc16">void</span><span class="sc0"> </span><span class="sc11">VGA_Clear</span><span class="sc10">(</span><span class="sc16">void</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc0"> </span><span class="sc11">virtual_base</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc10">{</span><span class="sc0">
+    </span><span class="sc16">int</span><span class="sc0"> </span><span class="sc11">offset</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc16">unsigned</span><span class="sc0"> </span><span class="sc16">int</span><span class="sc0"> </span><span class="sc11">pixel_ptr</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">row</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">col</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">char_ptr</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc5">for</span><span class="sc10">(</span><span class="sc11">row</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc4">0</span><span class="sc10">;</span><span class="sc0"> </span><span class="sc11">row</span><span class="sc0"> </span><span class="sc10">&lt;</span><span class="sc4">479</span><span class="sc10">;</span><span class="sc0"> </span><span class="sc11">row</span><span class="sc10">++)</span><span class="sc0">
+    </span><span class="sc10">{</span><span class="sc0">
+        </span><span class="sc5">for</span><span class="sc10">(</span><span class="sc11">col</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc4">0</span><span class="sc10">;</span><span class="sc0"> </span><span class="sc11">col</span><span class="sc10">&lt;</span><span class="sc4">639</span><span class="sc10">;</span><span class="sc0"> </span><span class="sc11">col</span><span class="sc10">++)</span><span class="sc0">
+        </span><span class="sc10">{</span><span class="sc0">
+            </span><span class="sc11">pixel_ptr</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">HW_OCRAM_BASE</span><span class="sc0"> </span><span class="sc10">+</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">row</span><span class="sc0"> </span><span class="sc10">&lt;&lt;</span><span class="sc0"> </span><span class="sc4">10</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">+</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">col</span><span class="sc0"> </span><span class="sc10">&lt;&lt;</span><span class="sc0"> </span><span class="sc4">1</span><span class="sc10">);</span><span class="sc0">
+            </span><span class="sc11">PHYSMEM_16</span><span class="sc10">(</span><span class="sc11">pixel_ptr</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc4">0x0000</span><span class="sc10">;</span><span class="sc0"> 
+        </span><span class="sc10">}</span><span class="sc0">
+    </span><span class="sc10">}</span><span class="sc0">
+    
+    </span><span class="sc11">row</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc4">0</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc11">col</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc4">0</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc11">offset</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">row</span><span class="sc0"> </span><span class="sc10">&lt;&lt;</span><span class="sc0"> </span><span class="sc4">7</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">+</span><span class="sc0"> </span><span class="sc11">col</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc5">for</span><span class="sc10">(</span><span class="sc11">row</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc4">0</span><span class="sc10">;</span><span class="sc0"> </span><span class="sc11">row</span><span class="sc0"> </span><span class="sc10">&lt;</span><span class="sc4">59</span><span class="sc10">;</span><span class="sc0"> </span><span class="sc11">row</span><span class="sc10">++)</span><span class="sc0">
+    </span><span class="sc10">{</span><span class="sc0">
+        </span><span class="sc5">for</span><span class="sc10">(</span><span class="sc11">col</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc4">0</span><span class="sc10">;</span><span class="sc0"> </span><span class="sc11">col</span><span class="sc10">&lt;</span><span class="sc4">79</span><span class="sc10">;</span><span class="sc0"> </span><span class="sc11">col</span><span class="sc10">++)</span><span class="sc0">
+        </span><span class="sc10">{</span><span class="sc0">
+            </span><span class="sc11">offset</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">row</span><span class="sc0"> </span><span class="sc10">&lt;&lt;</span><span class="sc0"> </span><span class="sc4">7</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">+</span><span class="sc0"> </span><span class="sc11">col</span><span class="sc10">;</span><span class="sc0">
+            </span><span class="sc11">char_ptr</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0">  </span><span class="sc11">FPGA_CHAR_BASE</span><span class="sc0"> </span><span class="sc10">+</span><span class="sc0"> </span><span class="sc11">offset</span><span class="sc10">;</span><span class="sc0">    
+            </span><span class="sc11">PHYSMEM_32</span><span class="sc10">(</span><span class="sc11">char_ptr</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc10">*(</span><span class="sc6">"\0"</span><span class="sc10">);</span><span class="sc0">
+            </span><span class="sc10">++</span><span class="sc11">offset</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc10">}</span><span class="sc0">
+    </span><span class="sc10">}</span><span class="sc0">       
+</span><span class="sc10">}</span><span class="sc0">
+
+</span><span class="sc3">/****************************************************************************************
+ * Draw the Score based on the number from the Score Counter
+****************************************************************************************/</span><span class="sc0">
+</span><span class="sc16">void</span><span class="sc0"> </span><span class="sc11">VGA_Draw_Score</span><span class="sc10">(</span><span class="sc16">int</span><span class="sc0"> </span><span class="sc11">score</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc16">void</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc11">virtual_base</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc10">{</span><span class="sc0"> 
+    </span><span class="sc16">char</span><span class="sc0"> </span><span class="sc11">tempArray</span><span class="sc10">[</span><span class="sc11">MAXSCORELENGTH</span><span class="sc10">];</span><span class="sc0">
+    </span><span class="sc11">sprintf</span><span class="sc10">(</span><span class="sc11">tempArray</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc6">"%d"</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">score</span><span class="sc10">);</span><span class="sc0"> 
+    </span><span class="sc11">VGA_text</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">SCORELEFTOFFSET</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">SCORETOPOFFSET</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">tempArray</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">virtual_base</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc10">}</span><span class="sc0">
+
+</span><span class="sc3">/****************************************************************************************
+ * Draw the Lines based on the number from the Line Counter
+****************************************************************************************/</span><span class="sc0">
+</span><span class="sc16">void</span><span class="sc0"> </span><span class="sc11">VGA_Draw_Line</span><span class="sc10">(</span><span class="sc16">int</span><span class="sc0"> </span><span class="sc11">lines</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc16">void</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc11">virtual_base</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc10">{</span><span class="sc0"> 
+    </span><span class="sc16">char</span><span class="sc0"> </span><span class="sc11">tempArray</span><span class="sc10">[</span><span class="sc11">MAXSCORELENGTH</span><span class="sc10">];</span><span class="sc0">
+    </span><span class="sc11">sprintf</span><span class="sc10">(</span><span class="sc11">tempArray</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc6">"%d"</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">lines</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">VGA_text</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">LINELEFTOFFSET</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">LINETOPOFFSET</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">tempArray</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">virtual_base</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc10">}</span><span class="sc0">
+
+</span><span class="sc3">/****************************************************************************************
+ * Draw the Level based on the number from the Level Counter
+****************************************************************************************/</span><span class="sc0">
+</span><span class="sc16">void</span><span class="sc0"> </span><span class="sc11">VGA_Draw_Level</span><span class="sc10">(</span><span class="sc16">int</span><span class="sc0"> </span><span class="sc11">level</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc16">void</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc11">virtual_base</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc10">{</span><span class="sc0"> 
+    </span><span class="sc16">char</span><span class="sc0"> </span><span class="sc11">tempArray</span><span class="sc10">[</span><span class="sc11">MAXSCORELENGTH</span><span class="sc10">];</span><span class="sc0">
+    </span><span class="sc11">sprintf</span><span class="sc10">(</span><span class="sc11">tempArray</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc6">"%d"</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">level</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">VGA_text</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">LEVELLEFTOFFSET</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">LEVELTOPOFFSET</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">tempArray</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">virtual_base</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc10">}</span><span class="sc0">
+
+</span><span class="sc3">/****************************************************************************************
+ * Draw Tetronimo Square
+****************************************************************************************/</span><span class="sc0">
+</span><span class="sc16">void</span><span class="sc0"> </span><span class="sc11">VGA_Draw_Tetronimo_Square</span><span class="sc10">(</span><span class="sc16">int</span><span class="sc0"> </span><span class="sc11">xgrid</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc16">int</span><span class="sc0"> </span><span class="sc11">ygrid</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc16">short</span><span class="sc0"> </span><span class="sc11">color</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc16">void</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc11">virtual_base</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc10">{</span><span class="sc0">
+    </span><span class="sc2">// int xGridStart = 
+</span><span class="sc0">    </span><span class="sc2">// VGA_box
+</span><span class="sc0">
+
+</span><span class="sc10">}</span><span class="sc0">
+
+</span><span class="sc3">/****************************************************************************************
+ * Draw Next Tetronimo Tetronimoes
+****************************************************************************************/</span><span class="sc0">
+</span><span class="sc16">void</span><span class="sc0"> </span><span class="sc11">VGA_Draw_Next_Tetronimo</span><span class="sc10">(</span><span class="sc16">int</span><span class="sc0"> </span><span class="sc11">choice</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc16">void</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc11">virtual_base</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc10">{</span><span class="sc0"> 
+    </span><span class="sc5">switch</span><span class="sc10">(</span><span class="sc11">choice</span><span class="sc10">)</span><span class="sc0">
+    </span><span class="sc10">{</span><span class="sc0">
+        </span><span class="sc5">case</span><span class="sc0"> </span><span class="sc4">1</span><span class="sc10">:</span><span class="sc0">
+            </span><span class="sc2">// Draw I Tetronimo
+</span><span class="sc0">            </span><span class="sc5">break</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc5">case</span><span class="sc0"> </span><span class="sc4">2</span><span class="sc10">:</span><span class="sc0">
+            </span><span class="sc2">// Draw J Tetronimo
+</span><span class="sc0">            </span><span class="sc5">break</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc5">case</span><span class="sc0"> </span><span class="sc4">3</span><span class="sc10">:</span><span class="sc0">
+            </span><span class="sc2">// Draw L Tetronimo
+</span><span class="sc0">            </span><span class="sc5">break</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc5">case</span><span class="sc0"> </span><span class="sc4">4</span><span class="sc10">:</span><span class="sc0">
+            </span><span class="sc2">// Draw O Tetronimo
+</span><span class="sc0">            </span><span class="sc5">break</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc5">case</span><span class="sc0"> </span><span class="sc4">5</span><span class="sc10">:</span><span class="sc0">
+            </span><span class="sc2">// Draw S Tetronimo
+</span><span class="sc0">            </span><span class="sc5">break</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc5">case</span><span class="sc0"> </span><span class="sc4">6</span><span class="sc10">:</span><span class="sc0">
+            </span><span class="sc2">// Draw T Tetronimo
+</span><span class="sc0">            </span><span class="sc5">break</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc5">case</span><span class="sc0"> </span><span class="sc4">7</span><span class="sc10">:</span><span class="sc0">
+            </span><span class="sc2">// Draw Z Tetronimo
+</span><span class="sc0">            </span><span class="sc5">break</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc5">default</span><span class="sc10">:</span><span class="sc0">
+            </span><span class="sc5">break</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc10">}</span><span class="sc0">
+</span><span class="sc10">}</span><span class="sc0">
+
+</span><span class="sc3">/****************************************************************************************
+ * Initial Setup
+****************************************************************************************/</span><span class="sc0">
+</span><span class="sc16">void</span><span class="sc0"> </span><span class="sc11">VGA_Tetris_Setup</span><span class="sc10">(</span><span class="sc16">void</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc11">virtual_base</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc10">{</span><span class="sc0"> 
+    </span><span class="sc11">VGA_Clear</span><span class="sc10">(</span><span class="sc11">virtual_base</span><span class="sc10">);</span><span class="sc0">    
+
+    </span><span class="sc2">// Draw Play Area Border
+</span><span class="sc0">    </span><span class="sc2">//VGA_SquareTetronimoBorderDraw(virtual_base); 
+</span><span class="sc0">    
+    </span><span class="sc2">// Draw Score Area
+</span><span class="sc0">    </span><span class="sc16">char</span><span class="sc0"> </span><span class="sc11">score_text</span><span class="sc10">[</span><span class="sc4">10</span><span class="sc10">]</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc6">"Score: \0"</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc16">char</span><span class="sc0"> </span><span class="sc11">lines_text</span><span class="sc10">[</span><span class="sc4">10</span><span class="sc10">]</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc6">"Lines:  \0"</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc16">char</span><span class="sc0"> </span><span class="sc11">level_text</span><span class="sc10">[</span><span class="sc4">10</span><span class="sc10">]</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc6">"Level: \0"</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc16">char</span><span class="sc0"> </span><span class="sc11">next_text</span><span class="sc10">[</span><span class="sc4">10</span><span class="sc10">]</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc6">"Next: \0"</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc11">VGA_text</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">SCORETEXTOFFSET</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">SCORETOPOFFSET</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">score_text</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">virtual_base</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">VGA_text</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">SCORETEXTOFFSET</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">LINETOPOFFSET</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">lines_text</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">virtual_base</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">VGA_text</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">SCORETEXTOFFSET</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">LEVELTOPOFFSET</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">level_text</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">virtual_base</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">VGA_text</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">SCORETEXTOFFSET</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">NEXTPIECETOPOFFSET</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">next_text</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">virtual_base</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc10">}</span><span class="sc0">
+
+</span><span class="sc3">/****************************************************************************************
+ * Translation Table
+****************************************************************************************/</span><span class="sc0">
+</span><span class="sc16">void</span><span class="sc0"> </span><span class="sc11">VGA_Pixel_Translation</span><span class="sc10">(</span><span class="sc16">int</span><span class="sc0"> </span><span class="sc11">x</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc16">int</span><span class="sc0"> </span><span class="sc11">y</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc16">int</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc0"> </span><span class="sc11">xPixelOut</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc16">int</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc0"> </span><span class="sc11">yPixelOut</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc10">{</span><span class="sc0"> 
+    </span><span class="sc5">if</span><span class="sc10">(</span><span class="sc11">x</span><span class="sc0"> </span><span class="sc10">&lt;</span><span class="sc0"> </span><span class="sc4">10</span><span class="sc0"> </span><span class="sc10">&amp;&amp;</span><span class="sc0"> </span><span class="sc11">y</span><span class="sc0"> </span><span class="sc10">&lt;</span><span class="sc0"> </span><span class="sc4">15</span><span class="sc10">)</span><span class="sc0">
+    </span><span class="sc10">{</span><span class="sc0">
+        </span><span class="sc10">*</span><span class="sc11">xPixelOut</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">PLAYLEFTOFFSET</span><span class="sc0"> </span><span class="sc10">+(</span><span class="sc11">x</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc0"> </span><span class="sc11">SQUAREWIDTH</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc10">*</span><span class="sc11">yPixelOut</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">y</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc0"> </span><span class="sc11">SQUAREHEIGHT</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc10">}</span><span class="sc0">
+</span><span class="sc10">}</span><span class="sc0">
+
+
+</span><span class="sc3">/****************************************************************************************
+ * Draw a Grey Colored Tetromino Square w/ a Black Border around the Grid
+****************************************************************************************/</span><span class="sc0">
+</span><span class="sc16">void</span><span class="sc0"> </span><span class="sc11">VGA_SquareTetronimoBorderDraw</span><span class="sc10">(</span><span class="sc16">short</span><span class="sc0"> </span><span class="sc11">color</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc16">void</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc11">virtual_base</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc10">{</span><span class="sc0"> 
+    </span><span class="sc16">int</span><span class="sc0"> </span><span class="sc11">row</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">col</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc5">for</span><span class="sc10">(</span><span class="sc11">row</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc4">0</span><span class="sc10">;</span><span class="sc0"> </span><span class="sc11">row</span><span class="sc0"> </span><span class="sc10">&lt;</span><span class="sc0"> </span><span class="sc11">ROWS</span><span class="sc10">+</span><span class="sc4">1</span><span class="sc10">;</span><span class="sc0"> </span><span class="sc11">row</span><span class="sc10">++)</span><span class="sc0">
+        </span><span class="sc5">for</span><span class="sc10">(</span><span class="sc11">col</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc4">0</span><span class="sc10">;</span><span class="sc0"> </span><span class="sc11">col</span><span class="sc0"> </span><span class="sc10">&lt;</span><span class="sc0"> </span><span class="sc11">COLUMNS</span><span class="sc10">+</span><span class="sc4">2</span><span class="sc10">;</span><span class="sc0"> </span><span class="sc11">col</span><span class="sc10">++)</span><span class="sc0">
+        </span><span class="sc10">{</span><span class="sc0">
+            
+            </span><span class="sc5">if</span><span class="sc10">(</span><span class="sc11">col</span><span class="sc0"> </span><span class="sc10">==</span><span class="sc0"> </span><span class="sc4">0</span><span class="sc0"> </span><span class="sc10">||</span><span class="sc0"> </span><span class="sc11">col</span><span class="sc0"> </span><span class="sc10">==</span><span class="sc0"> </span><span class="sc11">COLUMNS</span><span class="sc10">+</span><span class="sc4">1</span><span class="sc0"> </span><span class="sc10">||</span><span class="sc0"> </span><span class="sc11">row</span><span class="sc0"> </span><span class="sc10">==</span><span class="sc0"> </span><span class="sc11">ROWS</span><span class="sc10">)</span><span class="sc0">
+            </span><span class="sc10">{</span><span class="sc0">
+                </span><span class="sc2">//Outer Box
+</span><span class="sc0">                </span><span class="sc11">VGA_box</span><span class="sc10">(</span><span class="sc11">SQUAREWIDTH</span><span class="sc10">*</span><span class="sc11">col</span><span class="sc10">,</span><span class="sc0">
+                </span><span class="sc11">SQUAREHEIGHT</span><span class="sc10">*</span><span class="sc11">row</span><span class="sc10">,</span><span class="sc0">
+                </span><span class="sc11">SQUAREWIDTH</span><span class="sc10">*(</span><span class="sc11">col</span><span class="sc10">+</span><span class="sc4">1</span><span class="sc10">),</span><span class="sc0">
+                </span><span class="sc11">SQUAREHEIGHT</span><span class="sc10">*(</span><span class="sc11">row</span><span class="sc10">+</span><span class="sc4">1</span><span class="sc10">),</span><span class="sc0">
+                </span><span class="sc4">0</span><span class="sc10">,</span><span class="sc0">
+                </span><span class="sc11">virtual_base</span><span class="sc10">);</span><span class="sc0">
+                    
+                </span><span class="sc2">//Inner Box
+</span><span class="sc0">                </span><span class="sc11">VGA_box</span><span class="sc10">(</span><span class="sc11">SQUAREWIDTH</span><span class="sc10">*</span><span class="sc11">col</span><span class="sc0"> </span><span class="sc10">+</span><span class="sc0"> </span><span class="sc4">1</span><span class="sc10">,</span><span class="sc0">
+                </span><span class="sc11">SQUAREHEIGHT</span><span class="sc10">*</span><span class="sc11">row</span><span class="sc0"> </span><span class="sc10">+</span><span class="sc0"> </span><span class="sc4">1</span><span class="sc10">,</span><span class="sc0">
+                </span><span class="sc11">SQUAREWIDTH</span><span class="sc10">*(</span><span class="sc11">col</span><span class="sc10">+</span><span class="sc4">1</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">-</span><span class="sc0"> </span><span class="sc4">1</span><span class="sc10">,</span><span class="sc0">
+                </span><span class="sc11">SQUAREHEIGHT</span><span class="sc10">*(</span><span class="sc11">row</span><span class="sc10">+</span><span class="sc4">1</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">-</span><span class="sc0"> </span><span class="sc4">1</span><span class="sc10">,</span><span class="sc0">
+                </span><span class="sc11">color</span><span class="sc10">,</span><span class="sc0">
+                </span><span class="sc11">virtual_base</span><span class="sc10">);</span><span class="sc0">
+            </span><span class="sc10">}</span><span class="sc0">
+        </span><span class="sc10">}</span><span class="sc0">
+</span><span class="sc10">}</span><span class="sc0">
+
+</span><span class="sc3">/****************************************************************************************
+ * Draw Default Tetronimoes
+****************************************************************************************/</span><span class="sc0">
+</span><span class="sc16">void</span><span class="sc0"> </span><span class="sc11">VGA_Draw_Tetronimo</span><span class="sc10">(</span><span class="sc16">int</span><span class="sc0"> </span><span class="sc11">choice</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc16">void</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc11">virtual_base</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc10">{</span><span class="sc0"> 
+    </span><span class="sc5">switch</span><span class="sc10">(</span><span class="sc11">choice</span><span class="sc10">)</span><span class="sc0">
+    </span><span class="sc10">{</span><span class="sc0">
+        </span><span class="sc5">case</span><span class="sc0"> </span><span class="sc4">1</span><span class="sc10">:</span><span class="sc0">
+            </span><span class="sc2">// Draw I Tetronimo
+</span><span class="sc0">            </span><span class="sc5">break</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc5">case</span><span class="sc0"> </span><span class="sc4">2</span><span class="sc10">:</span><span class="sc0">
+            </span><span class="sc2">// Draw J Tetronimo
+</span><span class="sc0">            </span><span class="sc5">break</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc5">case</span><span class="sc0"> </span><span class="sc4">3</span><span class="sc10">:</span><span class="sc0">
+            </span><span class="sc2">// Draw L Tetronimo
+</span><span class="sc0">            </span><span class="sc5">break</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc5">case</span><span class="sc0"> </span><span class="sc4">4</span><span class="sc10">:</span><span class="sc0">
+            </span><span class="sc2">// Draw O Tetronimo
+</span><span class="sc0">            </span><span class="sc5">break</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc5">case</span><span class="sc0"> </span><span class="sc4">5</span><span class="sc10">:</span><span class="sc0">
+            </span><span class="sc2">// Draw S Tetronimo
+</span><span class="sc0">            </span><span class="sc5">break</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc5">case</span><span class="sc0"> </span><span class="sc4">6</span><span class="sc10">:</span><span class="sc0">
+            </span><span class="sc2">// Draw T Tetronimo
+</span><span class="sc0">            </span><span class="sc5">break</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc5">case</span><span class="sc0"> </span><span class="sc4">7</span><span class="sc10">:</span><span class="sc0">
+            </span><span class="sc2">// Draw Z Tetronimo
+</span><span class="sc0">            </span><span class="sc5">break</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc5">default</span><span class="sc10">:</span><span class="sc0">
+            </span><span class="sc5">break</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc10">}</span><span class="sc0">
+</span><span class="sc10">}</span><span class="sc0">
+
+</span><span class="sc3">/****************************************************************************************
+ * Rotate Tetronimoes CW
+****************************************************************************************/</span><span class="sc0">
+</span><span class="sc16">int</span><span class="sc0"> </span><span class="sc11">VGA_Rotate_Tetronimo</span><span class="sc10">(</span><span class="sc16">int</span><span class="sc0"> </span><span class="sc11">choice</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc16">int</span><span class="sc0"> </span><span class="sc11">currentRotation</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc16">void</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc11">virtual_base</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc10">{</span><span class="sc0"> 
+    </span><span class="sc5">switch</span><span class="sc10">(</span><span class="sc11">choice</span><span class="sc10">)</span><span class="sc0">
+    </span><span class="sc10">{</span><span class="sc0">
+        </span><span class="sc5">case</span><span class="sc0"> </span><span class="sc4">1</span><span class="sc10">:</span><span class="sc0">
+            </span><span class="sc2">// Rotate I Tetronimo
+</span><span class="sc0">            </span><span class="sc5">switch</span><span class="sc10">(</span><span class="sc11">currentRotation</span><span class="sc10">)</span><span class="sc0">
+            </span><span class="sc10">{</span><span class="sc0">
+                </span><span class="sc5">case</span><span class="sc0"> </span><span class="sc4">1</span><span class="sc10">:</span><span class="sc0">
+                    </span><span class="sc2">// Rotate from 1 to 2
+</span><span class="sc0">                    </span><span class="sc5">break</span><span class="sc10">;</span><span class="sc0">
+                </span><span class="sc5">case</span><span class="sc0"> </span><span class="sc4">2</span><span class="sc10">:</span><span class="sc0">
+                    </span><span class="sc2">// Rotate from 2 to 1
+</span><span class="sc0">                    </span><span class="sc5">break</span><span class="sc10">;</span><span class="sc0">
+                </span><span class="sc5">default</span><span class="sc10">:</span><span class="sc0">
+                    </span><span class="sc5">break</span><span class="sc10">;</span><span class="sc0">
+            </span><span class="sc10">}</span><span class="sc0">
+            </span><span class="sc5">break</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc5">case</span><span class="sc0"> </span><span class="sc4">2</span><span class="sc10">:</span><span class="sc0">
+            </span><span class="sc2">// Rotate J Tetronimo
+</span><span class="sc0">            </span><span class="sc5">switch</span><span class="sc10">(</span><span class="sc11">currentRotation</span><span class="sc10">)</span><span class="sc0">
+            </span><span class="sc10">{</span><span class="sc0">
+                </span><span class="sc5">case</span><span class="sc0"> </span><span class="sc4">1</span><span class="sc10">:</span><span class="sc0">
+                    </span><span class="sc2">// Rotate from 1 to 2
+</span><span class="sc0">                    </span><span class="sc5">break</span><span class="sc10">;</span><span class="sc0">
+                </span><span class="sc5">case</span><span class="sc0"> </span><span class="sc4">2</span><span class="sc10">:</span><span class="sc0">
+                    </span><span class="sc2">// Rotate from 2 to 3
+</span><span class="sc0">                    </span><span class="sc5">break</span><span class="sc10">;</span><span class="sc0">
+                </span><span class="sc5">case</span><span class="sc0"> </span><span class="sc4">3</span><span class="sc10">:</span><span class="sc0">
+                    </span><span class="sc2">// Rotate from 3 to 4
+</span><span class="sc0">                    </span><span class="sc5">break</span><span class="sc10">;</span><span class="sc0">
+                </span><span class="sc5">case</span><span class="sc0"> </span><span class="sc4">4</span><span class="sc10">:</span><span class="sc0">
+                    </span><span class="sc2">// Rotate from 4 to 1
+</span><span class="sc0">                    </span><span class="sc5">break</span><span class="sc10">;</span><span class="sc0">
+                </span><span class="sc5">default</span><span class="sc10">:</span><span class="sc0">
+                    </span><span class="sc5">break</span><span class="sc10">;</span><span class="sc0">
+            </span><span class="sc10">}</span><span class="sc0">
+            </span><span class="sc5">break</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc5">case</span><span class="sc0"> </span><span class="sc4">3</span><span class="sc10">:</span><span class="sc0">
+            </span><span class="sc2">// Rotate L Tetronimo
+</span><span class="sc0">            </span><span class="sc5">switch</span><span class="sc10">(</span><span class="sc11">currentRotation</span><span class="sc10">)</span><span class="sc0">
+            </span><span class="sc10">{</span><span class="sc0">
+                </span><span class="sc5">case</span><span class="sc0"> </span><span class="sc4">1</span><span class="sc10">:</span><span class="sc0">
+                    </span><span class="sc2">// Rotate from 1 to 2
+</span><span class="sc0">                    </span><span class="sc5">break</span><span class="sc10">;</span><span class="sc0">
+                </span><span class="sc5">case</span><span class="sc0"> </span><span class="sc4">2</span><span class="sc10">:</span><span class="sc0">
+                    </span><span class="sc2">// Rotate from 2 to 3
+</span><span class="sc0">                    </span><span class="sc5">break</span><span class="sc10">;</span><span class="sc0">
+                </span><span class="sc5">case</span><span class="sc0"> </span><span class="sc4">3</span><span class="sc10">:</span><span class="sc0">
+                    </span><span class="sc2">// Rotate from 3 to 4
+</span><span class="sc0">                    </span><span class="sc5">break</span><span class="sc10">;</span><span class="sc0">
+                </span><span class="sc5">case</span><span class="sc0"> </span><span class="sc4">4</span><span class="sc10">:</span><span class="sc0">
+                    </span><span class="sc2">// Rotate from 4 to 1
+</span><span class="sc0">                    </span><span class="sc5">break</span><span class="sc10">;</span><span class="sc0">
+                </span><span class="sc5">default</span><span class="sc10">:</span><span class="sc0">
+                    </span><span class="sc5">break</span><span class="sc10">;</span><span class="sc0">
+            </span><span class="sc10">}</span><span class="sc0">
+            </span><span class="sc5">break</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc5">case</span><span class="sc0"> </span><span class="sc4">4</span><span class="sc10">:</span><span class="sc0">
+            </span><span class="sc2">// Rotate O Tetronimo
+</span><span class="sc0">            </span><span class="sc5">switch</span><span class="sc10">(</span><span class="sc11">currentRotation</span><span class="sc10">)</span><span class="sc0">
+            </span><span class="sc10">{</span><span class="sc0">
+                </span><span class="sc5">case</span><span class="sc0"> </span><span class="sc4">1</span><span class="sc10">:</span><span class="sc0">
+                    </span><span class="sc5">break</span><span class="sc10">;</span><span class="sc0">
+            </span><span class="sc10">}</span><span class="sc0">
+            </span><span class="sc5">break</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc5">case</span><span class="sc0"> </span><span class="sc4">5</span><span class="sc10">:</span><span class="sc0">
+            </span><span class="sc2">// Rotate S Tetronimo
+</span><span class="sc0">            </span><span class="sc5">switch</span><span class="sc10">(</span><span class="sc11">currentRotation</span><span class="sc10">)</span><span class="sc0">
+            </span><span class="sc10">{</span><span class="sc0">
+                </span><span class="sc5">case</span><span class="sc0"> </span><span class="sc4">1</span><span class="sc10">:</span><span class="sc0">
+                    </span><span class="sc2">// Rotate from 1 to 2
+</span><span class="sc0">                    </span><span class="sc5">break</span><span class="sc10">;</span><span class="sc0">
+                </span><span class="sc5">case</span><span class="sc0"> </span><span class="sc4">2</span><span class="sc10">:</span><span class="sc0">
+                    </span><span class="sc2">// Rotate from 2 to 3
+</span><span class="sc0">                    </span><span class="sc5">break</span><span class="sc10">;</span><span class="sc0">
+                </span><span class="sc5">case</span><span class="sc0"> </span><span class="sc4">3</span><span class="sc10">:</span><span class="sc0">
+                    </span><span class="sc2">// Rotate from 3 to 4
+</span><span class="sc0">                    </span><span class="sc5">break</span><span class="sc10">;</span><span class="sc0">
+                </span><span class="sc5">case</span><span class="sc0"> </span><span class="sc4">4</span><span class="sc10">:</span><span class="sc0">
+                    </span><span class="sc2">// Rotate from 4 to 1
+</span><span class="sc0">                    </span><span class="sc5">break</span><span class="sc10">;</span><span class="sc0">
+                </span><span class="sc5">default</span><span class="sc10">:</span><span class="sc0">
+                    </span><span class="sc5">break</span><span class="sc10">;</span><span class="sc0">
+            </span><span class="sc10">}</span><span class="sc0">
+            </span><span class="sc5">break</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc5">case</span><span class="sc0"> </span><span class="sc4">6</span><span class="sc10">:</span><span class="sc0">
+            </span><span class="sc2">// Rotate T Tetronimo
+</span><span class="sc0">            </span><span class="sc5">switch</span><span class="sc10">(</span><span class="sc11">currentRotation</span><span class="sc10">)</span><span class="sc0">
+            </span><span class="sc10">{</span><span class="sc0">
+                </span><span class="sc5">case</span><span class="sc0"> </span><span class="sc4">1</span><span class="sc10">:</span><span class="sc0">
+                    </span><span class="sc2">// Rotate from 1 to 2
+</span><span class="sc0">                    </span><span class="sc5">break</span><span class="sc10">;</span><span class="sc0">
+                </span><span class="sc5">case</span><span class="sc0"> </span><span class="sc4">2</span><span class="sc10">:</span><span class="sc0">
+                    </span><span class="sc2">// Rotate from 2 to 3
+</span><span class="sc0">                    </span><span class="sc5">break</span><span class="sc10">;</span><span class="sc0">
+                </span><span class="sc5">case</span><span class="sc0"> </span><span class="sc4">3</span><span class="sc10">:</span><span class="sc0">
+                    </span><span class="sc2">// Rotate from 3 to 4
+</span><span class="sc0">                    </span><span class="sc5">break</span><span class="sc10">;</span><span class="sc0">
+                </span><span class="sc5">case</span><span class="sc0"> </span><span class="sc4">4</span><span class="sc10">:</span><span class="sc0">
+                    </span><span class="sc2">// Rotate from 4 to 1
+</span><span class="sc0">                    </span><span class="sc5">break</span><span class="sc10">;</span><span class="sc0">
+                </span><span class="sc5">default</span><span class="sc10">:</span><span class="sc0">
+                    </span><span class="sc5">break</span><span class="sc10">;</span><span class="sc0">
+            </span><span class="sc10">}</span><span class="sc0">
+            </span><span class="sc5">break</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc5">case</span><span class="sc0"> </span><span class="sc4">7</span><span class="sc10">:</span><span class="sc0">
+            </span><span class="sc2">// Rotate Z Tetronimo
+</span><span class="sc0">            </span><span class="sc5">switch</span><span class="sc10">(</span><span class="sc11">currentRotation</span><span class="sc10">)</span><span class="sc0">
+            </span><span class="sc10">{</span><span class="sc0">
+                </span><span class="sc5">case</span><span class="sc0"> </span><span class="sc4">1</span><span class="sc10">:</span><span class="sc0">
+                    </span><span class="sc2">// Rotate from 1 to 2
+</span><span class="sc0">                    </span><span class="sc5">break</span><span class="sc10">;</span><span class="sc0">
+                </span><span class="sc5">case</span><span class="sc0"> </span><span class="sc4">2</span><span class="sc10">:</span><span class="sc0">
+                    </span><span class="sc2">// Rotate from 2 to 3
+</span><span class="sc0">                    </span><span class="sc5">break</span><span class="sc10">;</span><span class="sc0">
+                </span><span class="sc5">case</span><span class="sc0"> </span><span class="sc4">3</span><span class="sc10">:</span><span class="sc0">
+                    </span><span class="sc2">// Rotate from 3 to 4
+</span><span class="sc0">                    </span><span class="sc5">break</span><span class="sc10">;</span><span class="sc0">
+                </span><span class="sc5">case</span><span class="sc0"> </span><span class="sc4">4</span><span class="sc10">:</span><span class="sc0">
+                    </span><span class="sc2">// Rotate from 4 to 1
+</span><span class="sc0">                    </span><span class="sc5">break</span><span class="sc10">;</span><span class="sc0">
+                </span><span class="sc5">default</span><span class="sc10">:</span><span class="sc0">
+                    </span><span class="sc5">break</span><span class="sc10">;</span><span class="sc0">
+            </span><span class="sc10">}</span><span class="sc0">
+            </span><span class="sc5">break</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc5">default</span><span class="sc10">:</span><span class="sc0">
+            </span><span class="sc5">break</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc10">}</span><span class="sc0">
+    </span><span class="sc5">return</span><span class="sc0"> </span><span class="sc11">currentRotation</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc10">}</span><span class="sc0">
+
+</span><span class="sc16">int</span><span class="sc0"> </span><span class="sc11">main</span><span class="sc10">(</span><span class="sc16">int</span><span class="sc0"> </span><span class="sc11">argc</span><span class="sc10">,</span><span class="sc16">char</span><span class="sc0"> </span><span class="sc10">**</span><span class="sc0"> </span><span class="sc11">argv</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">{</span><span class="sc0">
+    
+    </span><span class="sc16">void</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc11">virtual_base</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc16">int</span><span class="sc0"> </span><span class="sc11">fd</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">file</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc16">const</span><span class="sc0"> </span><span class="sc16">char</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc11">filename</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc6">"/dev/i2c-0"</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc16">uint8_t</span><span class="sc0"> </span><span class="sc11">id</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc16">bool</span><span class="sc0"> </span><span class="sc11">bSuccess</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc16">const</span><span class="sc0"> </span><span class="sc16">int</span><span class="sc0"> </span><span class="sc11">mg_per_digi</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc4">4</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc16">uint16_t</span><span class="sc0"> </span><span class="sc11">szXYZ</span><span class="sc10">[</span><span class="sc4">3</span><span class="sc10">];</span><span class="sc0">
+    </span><span class="sc16">int</span><span class="sc0"> </span><span class="sc11">delay</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc4">1000000</span><span class="sc10">;</span><span class="sc0"> </span><span class="sc2">// 1 second
+</span><span class="sc0">    
+    </span><span class="sc2">// Dyanmic Box Variables
+</span><span class="sc0">    </span><span class="sc16">int16_t</span><span class="sc0"> </span><span class="sc11">xg</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">yg</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">zg</span><span class="sc10">;</span><span class="sc0">
+    
+    </span><span class="sc5">if</span><span class="sc10">(</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc0"> </span><span class="sc11">fd</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">open</span><span class="sc10">(</span><span class="sc0"> </span><span class="sc6">"/dev/mem"</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc0"> </span><span class="sc11">O_RDWR</span><span class="sc0"> </span><span class="sc10">|</span><span class="sc0"> </span><span class="sc11">O_SYNC</span><span class="sc0"> </span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">==</span><span class="sc0"> </span><span class="sc10">-</span><span class="sc4">1</span><span class="sc0"> </span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">{</span><span class="sc0">
+        </span><span class="sc11">printf</span><span class="sc10">(</span><span class="sc0"> </span><span class="sc6">"ERROR: could not open \"/dev/mem\"...\n"</span><span class="sc0"> </span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc5">return</span><span class="sc10">(</span><span class="sc0"> </span><span class="sc4">1</span><span class="sc0"> </span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc10">}</span><span class="sc0">
+    
+    </span><span class="sc11">virtual_base</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">mmap</span><span class="sc10">(</span><span class="sc0"> </span><span class="sc5">NULL</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">HW_REGS_SPAN</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc0"> </span><span class="sc11">PROT_READ</span><span class="sc0"> </span><span class="sc10">|</span><span class="sc0"> </span><span class="sc11">PROT_WRITE</span><span class="sc0"> </span><span class="sc10">),</span><span class="sc0"> </span><span class="sc11">MAP_SHARED</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">fd</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">HW_REGS_BASE</span><span class="sc0"> </span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc5">if</span><span class="sc10">(</span><span class="sc0"> </span><span class="sc11">virtual_base</span><span class="sc0"> </span><span class="sc10">==</span><span class="sc0"> </span><span class="sc11">MAP_FAILED</span><span class="sc0"> </span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">{</span><span class="sc0">
+        </span><span class="sc11">printf</span><span class="sc10">(</span><span class="sc0"> </span><span class="sc6">"ERROR: mmap() failed...\n"</span><span class="sc0"> </span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">close</span><span class="sc10">(</span><span class="sc0"> </span><span class="sc11">fd</span><span class="sc0"> </span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc5">return</span><span class="sc10">(</span><span class="sc0"> </span><span class="sc4">1</span><span class="sc0"> </span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc10">}</span><span class="sc0">
+    
+    </span><span class="sc2">// Set framebuffer addr to beginning of the SRAM
+</span><span class="sc0">    </span><span class="sc11">PHYSMEM_32</span><span class="sc10">(</span><span class="sc4">0xff203024</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc4">0xc8000000</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc11">PHYSMEM_32</span><span class="sc10">(</span><span class="sc4">0xff203020</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc4">0xc8000000</span><span class="sc10">;</span><span class="sc0">
+    
+    </span><span class="sc2">// Unmap registers region, map onchip ram region
+</span><span class="sc0">    </span><span class="sc5">if</span><span class="sc10">(</span><span class="sc0"> </span><span class="sc11">munmap</span><span class="sc10">(</span><span class="sc0"> </span><span class="sc11">virtual_base</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">HW_REGS_SPAN</span><span class="sc0"> </span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">!=</span><span class="sc0"> </span><span class="sc4">0</span><span class="sc0"> </span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">{</span><span class="sc0">
+        </span><span class="sc11">printf</span><span class="sc10">(</span><span class="sc0"> </span><span class="sc6">"ERROR: munmap() failed...\n"</span><span class="sc0"> </span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">close</span><span class="sc10">(</span><span class="sc0"> </span><span class="sc11">fd</span><span class="sc0"> </span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc5">return</span><span class="sc10">(</span><span class="sc0"> </span><span class="sc4">1</span><span class="sc0"> </span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc10">}</span><span class="sc0">
+    </span><span class="sc11">virtual_base</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">mmap</span><span class="sc10">(</span><span class="sc0"> </span><span class="sc5">NULL</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">HW_REGS_SPAN</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc0"> </span><span class="sc11">PROT_READ</span><span class="sc0"> </span><span class="sc10">|</span><span class="sc0"> </span><span class="sc11">PROT_WRITE</span><span class="sc0"> </span><span class="sc10">),</span><span class="sc0"> </span><span class="sc11">MAP_SHARED</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">fd</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">HW_OCRAM_BASE</span><span class="sc0"> </span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc5">if</span><span class="sc10">(</span><span class="sc0"> </span><span class="sc11">virtual_base</span><span class="sc0"> </span><span class="sc10">==</span><span class="sc0"> </span><span class="sc11">MAP_FAILED</span><span class="sc0"> </span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">{</span><span class="sc0">
+        </span><span class="sc11">printf</span><span class="sc10">(</span><span class="sc0"> </span><span class="sc6">"ERROR: mmap() failed...\n"</span><span class="sc0"> </span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">close</span><span class="sc10">(</span><span class="sc0"> </span><span class="sc11">fd</span><span class="sc0"> </span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc5">return</span><span class="sc10">(</span><span class="sc0"> </span><span class="sc4">1</span><span class="sc0"> </span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc10">}</span><span class="sc0">
+    
+    </span><span class="sc2">// open bus
+</span><span class="sc0">    </span><span class="sc5">if</span><span class="sc0"> </span><span class="sc10">((</span><span class="sc11">file</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">open</span><span class="sc10">(</span><span class="sc11">filename</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">O_RDWR</span><span class="sc10">))</span><span class="sc0"> </span><span class="sc10">&lt;</span><span class="sc0"> </span><span class="sc4">0</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">{</span><span class="sc0">
+      </span><span class="sc1">/* ERROR HANDLING: you can check errno to see what went wrong */</span><span class="sc0">
+        </span><span class="sc11">perror</span><span class="sc10">(</span><span class="sc6">"Failed to open the i2c bus of gsensor"</span><span class="sc10">);</span><span class="sc0">
+      </span><span class="sc11">exit</span><span class="sc10">(</span><span class="sc4">1</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc10">}</span><span class="sc0">
+
+    </span><span class="sc2">// init  
+</span><span class="sc0">    </span><span class="sc2">// gsensor i2c address: 101_0011
+</span><span class="sc0">    </span><span class="sc16">int</span><span class="sc0"> </span><span class="sc11">addr</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc4">0b01010011</span><span class="sc10">;</span><span class="sc0"> 
+    </span><span class="sc5">if</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">ioctl</span><span class="sc10">(</span><span class="sc11">file</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">I2C_SLAVE</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">addr</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">&lt;</span><span class="sc0"> </span><span class="sc4">0</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">{</span><span class="sc0">
+      </span><span class="sc11">printf</span><span class="sc10">(</span><span class="sc6">"Failed to acquire bus access and/or talk to slave.\n"</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc1">/* ERROR HANDLING; you can check errno to see what went wrong */</span><span class="sc0">
+      </span><span class="sc11">exit</span><span class="sc10">(</span><span class="sc4">1</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc10">}</span><span class="sc0">
+
+    </span><span class="sc2">// configure accelerometer as +-2g and start measure
+</span><span class="sc0">    </span><span class="sc11">bSuccess</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">ADXL345_Init</span><span class="sc10">(</span><span class="sc11">file</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc5">if</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">bSuccess</span><span class="sc10">){</span><span class="sc0">
+        </span><span class="sc2">// dump chip id
+</span><span class="sc0">        </span><span class="sc11">bSuccess</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">ADXL345_IdRead</span><span class="sc10">(</span><span class="sc11">file</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc10">&amp;</span><span class="sc11">id</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc5">if</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">bSuccess</span><span class="sc10">)</span><span class="sc0">
+            </span><span class="sc11">printf</span><span class="sc10">(</span><span class="sc6">"id=%02Xh\r\n"</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">id</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc10">}</span><span class="sc0">   
+    
+    </span><span class="sc11">VGA_Clear</span><span class="sc10">(</span><span class="sc11">virtual_base</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">printf</span><span class="sc10">(</span><span class="sc6">"Do you want to start playing Tetris?\n "</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">printf</span><span class="sc10">(</span><span class="sc6">"[1] Yes\n "</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">printf</span><span class="sc10">(</span><span class="sc6">"Choice: "</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc16">char</span><span class="sc0"> </span><span class="sc11">c</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc11">c</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">getchar</span><span class="sc10">();</span><span class="sc0">
+    
+    </span><span class="sc2">// Start Tetris
+</span><span class="sc0">    </span><span class="sc5">if</span><span class="sc10">((</span><span class="sc11">c</span><span class="sc0"> </span><span class="sc10">==</span><span class="sc0"> </span><span class="sc7">'1'</span><span class="sc10">))</span><span class="sc0">
+    </span><span class="sc10">{</span><span class="sc0">   
+        </span><span class="sc16">bool</span><span class="sc0"> </span><span class="sc11">changed</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc5">false</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc16">int</span><span class="sc0"> </span><span class="sc11">randTetronimoChoice</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">rand</span><span class="sc10">()</span><span class="sc0"> </span><span class="sc10">%</span><span class="sc0"> </span><span class="sc4">8</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc16">short</span><span class="sc0"> </span><span class="sc11">gridData</span><span class="sc0"> </span><span class="sc10">[</span><span class="sc4">10</span><span class="sc10">][</span><span class="sc4">15</span><span class="sc10">];</span><span class="sc0">            
+        </span><span class="sc16">int</span><span class="sc0"> </span><span class="sc11">i</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">j</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">xPixel</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">yPixel</span><span class="sc10">;</span><span class="sc0">
+
+        </span><span class="sc5">for</span><span class="sc10">(</span><span class="sc11">i</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc4">0</span><span class="sc10">;</span><span class="sc0"> </span><span class="sc11">i</span><span class="sc0"> </span><span class="sc10">&lt;</span><span class="sc0"> </span><span class="sc4">10</span><span class="sc10">;</span><span class="sc0"> </span><span class="sc11">i</span><span class="sc10">++)</span><span class="sc0">
+        </span><span class="sc10">{</span><span class="sc0">
+            </span><span class="sc5">for</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">j</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc4">0</span><span class="sc10">;</span><span class="sc0"> </span><span class="sc11">j</span><span class="sc0"> </span><span class="sc10">&lt;</span><span class="sc0"> </span><span class="sc4">15</span><span class="sc10">;</span><span class="sc0"> </span><span class="sc11">j</span><span class="sc10">++)</span><span class="sc0">
+            </span><span class="sc10">{</span><span class="sc0">
+                </span><span class="sc11">gridData</span><span class="sc10">[</span><span class="sc11">i</span><span class="sc10">][</span><span class="sc11">j</span><span class="sc10">]</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc4">0x0000</span><span class="sc10">;</span><span class="sc0">
+            </span><span class="sc10">}</span><span class="sc0">
+        </span><span class="sc10">}</span><span class="sc0">
+
+        </span><span class="sc16">int</span><span class="sc0"> </span><span class="sc11">lineCount</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc4">0</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc16">int</span><span class="sc0"> </span><span class="sc11">level</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc4">0</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc16">int</span><span class="sc0"> </span><span class="sc11">score</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc4">0</span><span class="sc10">;</span><span class="sc0">
+        
+        </span><span class="sc11">VGA_Tetris_Setup</span><span class="sc10">(</span><span class="sc11">virtual_base</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">VGA_Draw_Score</span><span class="sc10">(</span><span class="sc11">score</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">virtual_base</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">VGA_Draw_Line</span><span class="sc10">(</span><span class="sc11">lineCount</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">virtual_base</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">VGA_Draw_Level</span><span class="sc10">(</span><span class="sc11">level</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">virtual_base</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">VGA_SquareTetronimoBorderDraw</span><span class="sc10">(</span><span class="sc4">0xFFFF</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">virtual_base</span><span class="sc10">);</span><span class="sc0">    </span><span class="sc2">//draw border
+</span><span class="sc0">        </span><span class="sc2">//VGA_Draw_Next_Tetronimo(virtual_base);
+</span><span class="sc0">        </span><span class="sc2">//VGA_Pixel_Translation(x, y, &amp;xPixel, &amp;yPixel);
+</span><span class="sc0">        
+        </span><span class="sc5">while</span><span class="sc10">(</span><span class="sc11">bSuccess</span><span class="sc10">){</span><span class="sc0">
+            </span><span class="sc5">if</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">ADXL345_IsDataReady</span><span class="sc10">(</span><span class="sc11">file</span><span class="sc10">)){</span><span class="sc0">
+                </span><span class="sc11">bSuccess</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc11">ADXL345_XYZ_Read</span><span class="sc10">(</span><span class="sc11">file</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">szXYZ</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc5">if</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">bSuccess</span><span class="sc10">){</span><span class="sc0">
+                    </span><span class="sc11">xg</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc16">int16_t</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc11">szXYZ</span><span class="sc10">[</span><span class="sc4">0</span><span class="sc10">]*</span><span class="sc11">mg_per_digi</span><span class="sc10">;</span><span class="sc0">
+                    </span><span class="sc11">yg</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc16">int16_t</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc11">szXYZ</span><span class="sc10">[</span><span class="sc4">1</span><span class="sc10">]*</span><span class="sc11">mg_per_digi</span><span class="sc10">;</span><span class="sc0">
+                    </span><span class="sc11">zg</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc16">int16_t</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc11">szXYZ</span><span class="sc10">[</span><span class="sc4">2</span><span class="sc10">]*</span><span class="sc11">mg_per_digi</span><span class="sc10">;</span><span class="sc0">                    
+                    </span><span class="sc2">// Movement Detection
+</span><span class="sc0">                    </span><span class="sc5">if</span><span class="sc10">(</span><span class="sc11">xg</span><span class="sc0"> </span><span class="sc10">&gt;</span><span class="sc0"> </span><span class="sc4">100</span><span class="sc10">){</span><span class="sc0">
+                        </span><span class="sc11">changed</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc5">true</span><span class="sc10">;</span><span class="sc0">
+                    </span><span class="sc10">}</span><span class="sc0">
+                    </span><span class="sc5">else</span><span class="sc0"> </span><span class="sc5">if</span><span class="sc10">(</span><span class="sc11">xg</span><span class="sc0"> </span><span class="sc10">&lt;</span><span class="sc0"> </span><span class="sc10">-</span><span class="sc4">100</span><span class="sc10">){</span><span class="sc0">
+
+                        </span><span class="sc11">changed</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc5">true</span><span class="sc10">;</span><span class="sc0">
+                    </span><span class="sc10">}</span><span class="sc0">
+                
+                    </span><span class="sc5">if</span><span class="sc10">(</span><span class="sc11">yg</span><span class="sc0"> </span><span class="sc10">&gt;</span><span class="sc0"> </span><span class="sc4">100</span><span class="sc10">){</span><span class="sc0">
+                        
+                        </span><span class="sc11">changed</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc5">true</span><span class="sc10">;</span><span class="sc0">
+                    </span><span class="sc10">}</span><span class="sc0">
+                    </span><span class="sc5">else</span><span class="sc0"> </span><span class="sc5">if</span><span class="sc10">(</span><span class="sc11">yg</span><span class="sc0"> </span><span class="sc10">&lt;</span><span class="sc0"> </span><span class="sc10">-</span><span class="sc4">100</span><span class="sc10">){</span><span class="sc0">
+                        
+                        </span><span class="sc11">changed</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc5">true</span><span class="sc10">;</span><span class="sc0">
+                    </span><span class="sc10">}</span><span class="sc0">
+                    </span><span class="sc5">if</span><span class="sc10">(</span><span class="sc11">changed</span><span class="sc0"> </span><span class="sc10">==</span><span class="sc0"> </span><span class="sc5">true</span><span class="sc10">)</span><span class="sc0">
+                    </span><span class="sc10">{</span><span class="sc0">
+                        </span><span class="sc11">changed</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc5">false</span><span class="sc10">;</span><span class="sc0">
+                    </span><span class="sc10">}</span><span class="sc0">
+                    
+                    </span><span class="sc11">usleep</span><span class="sc10">(</span><span class="sc11">delay</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc10">}</span><span class="sc0">
+            </span><span class="sc10">}</span><span class="sc0">
+        </span><span class="sc10">}</span><span class="sc0">
+    
+    </span><span class="sc10">}</span><span class="sc0">
+    </span><span class="sc2">// Exit
+</span><span class="sc0">    </span><span class="sc5">else</span><span class="sc0"> </span><span class="sc5">if</span><span class="sc10">((</span><span class="sc11">c</span><span class="sc0"> </span><span class="sc10">!=</span><span class="sc0"> </span><span class="sc7">'1'</span><span class="sc10">))</span><span class="sc0">
+    </span><span class="sc10">{</span><span class="sc0">
+        </span><span class="sc11">exit</span><span class="sc10">(</span><span class="sc4">0</span><span class="sc10">);</span><span class="sc0">
+    
+    </span><span class="sc10">}</span><span class="sc0">
+    </span><span class="sc5">if</span><span class="sc0"> </span><span class="sc10">(!</span><span class="sc11">bSuccess</span><span class="sc10">)</span><span class="sc0">
+    </span><span class="sc11">printf</span><span class="sc10">(</span><span class="sc6">"Failed to access accelerometer\r\n"</span><span class="sc10">);</span><span class="sc0">
+
+    </span><span class="sc5">if</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">file</span><span class="sc10">)</span><span class="sc0">
+        </span><span class="sc11">close</span><span class="sc10">(</span><span class="sc11">file</span><span class="sc10">);</span><span class="sc0">
+        
+    </span><span class="sc11">printf</span><span class="sc10">(</span><span class="sc6">"gsensor, bye!\r\n"</span><span class="sc10">);</span><span class="sc0">            
+    
+    </span><span class="sc5">if</span><span class="sc10">(</span><span class="sc0"> </span><span class="sc11">munmap</span><span class="sc10">(</span><span class="sc0"> </span><span class="sc11">virtual_base</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">HW_REGS_SPAN</span><span class="sc0"> </span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">!=</span><span class="sc0"> </span><span class="sc4">0</span><span class="sc0"> </span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">{</span><span class="sc0">
+        </span><span class="sc11">printf</span><span class="sc10">(</span><span class="sc0"> </span><span class="sc6">"ERROR: munmap() failed...\n"</span><span class="sc0"> </span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">close</span><span class="sc10">(</span><span class="sc0"> </span><span class="sc11">fd</span><span class="sc0"> </span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc5">return</span><span class="sc10">(</span><span class="sc0"> </span><span class="sc4">1</span><span class="sc0"> </span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc10">}</span><span class="sc0">
+
+    </span><span class="sc11">close</span><span class="sc10">(</span><span class="sc0"> </span><span class="sc11">fd</span><span class="sc0"> </span><span class="sc10">);</span><span class="sc0">
+
+    </span><span class="sc5">return</span><span class="sc10">(</span><span class="sc0"> </span><span class="sc4">0</span><span class="sc0"> </span><span class="sc10">);</span><span class="sc0">
+
+</span><span class="sc10">}</span><span class="sc0">
+</span></div></body>
+</html>

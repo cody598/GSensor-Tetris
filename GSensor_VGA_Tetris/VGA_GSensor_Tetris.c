@@ -522,14 +522,15 @@ int main(int argc,char ** argv) {
 	{	
 		bool changed = false;
 		int randTetronimoChoice = rand() % 8;
-		short gridData [10][15];			
+		short gridData [COLUMNS][ROWS];			
 		int i, j, xPixel, yPixel;
 
-		for(i = 0; i < 10; i++)
+		for(i = 0; i < COLUMNS; i++)
 		{
-			for (j = 0; j < 15; j++)
+			
+			for (j = 0; j < ROWS; j++)
 			{
-				gridData[i][j] = 0x0000;
+				gridData[i][j] = BLACK;
 			}
 		}
 
