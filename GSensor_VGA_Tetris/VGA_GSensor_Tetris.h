@@ -46,12 +46,12 @@
 
 // Define Colors
 #define CYAN 0x07FF // I
-#define YELLOW 0xFF40 // O
-#define PURPLE 0x8813 // T
-#define GREEN 0x07E3 // S
+#define YELLOW 0xFF33 // O
+#define PURPLE 0x8010 // T
+#define GREEN 0x4D04 // S
 #define RED 0xF800 // Z
-#define BLUE 0x02B5 // J
-#define ORANGE 0xFC80 // L
+#define BLUE 0x001F // J
+#define ORANGE 0xFD20 // L
 #define BLACK 0x0000 
 #define GREY 0x9D13
 
