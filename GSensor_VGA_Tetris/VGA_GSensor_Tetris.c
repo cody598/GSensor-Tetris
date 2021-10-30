@@ -231,44 +231,17 @@ void VGA_Tetris_Setup(void *virtual_base)
 }
 
 /****************************************************************************************
- * Table Setup
+ * Translation Table
 ****************************************************************************************/
-/*
-void VGA_Tetris_Array_Setup(int **tempArrayCoordinates, short **tempArrayColors)
+void VGA_Pixel_Translation(int x, int y, int * xPixelOut, int * yPixelOut)
 { 
-		int i, j, xPosition, yPosition;
-
-		for(i = 0; i < 10; i++)
-		{
-			for (j = 0; j < 15; j++)
-			{
-				tempArrayColors[i][j] = 0x0000;
-			}
-		}
-		
-		
-		for(j = 0; j < 15; j++)
-		{
-			xPosition = 0;
-			yPosition = 0;
-			for(i = 0; i < 20; i++)
-			{
-				if(i % 2 == 0)
-				{
-					xPosition = xPosition + ((i/2) * SQUAREWIDTH);
-					tempArrayCoordinates[i][j] = xPosition;
-				}
-				else
-				{
-					yPosition = yPosition + (j * SQUAREHEIGHT);
-					tempArrayCoordinates[i][j] = yPosition;
-					printf("x: %d  y: %d \n", tempArrayCoordinates[i-1][j], tempArrayCoordinates[i][j] );
-				}
-				
-			}
-		}
+	if(x < 10 && y < 15)
+	{
+		*xPixelOut = PLAYLEFTOFFSET +(x * SQUAREWIDTH);
+		*yPixelOut = (y * SQUAREHEIGHT);
+	}
 }
-*/
+
 
 /****************************************************************************************
  * Draw a Grey Colored Tetromino Square w/ a Black Border around the Grid
@@ -549,10 +522,8 @@ int main(int argc,char ** argv) {
 	{	
 		bool changed = false;
 		int randTetronimoChoice = rand() % 8;
-		short gridData [10][15];	
-		unsigned int gridCoordinates[10][15];
-
-		int i, j;
+		short gridData [10][15];			
+		int i, j, xPixel, yPixel;
 
 		for(i = 0; i < 10; i++)
 		{
@@ -567,12 +538,12 @@ int main(int argc,char ** argv) {
 		int score = 0;
 		
 		VGA_Tetris_Setup(virtual_base);
-		//VGA_Tetris_Array_Setup(gridCoordinates, gridData);
 		VGA_Draw_Score(score, virtual_base);
 		VGA_Draw_Line(lineCount, virtual_base);
 		VGA_Draw_Level(level, virtual_base);
 		VGA_SquareTetronimoBorderDraw(0xFFFF, virtual_base);	//draw border
 		//VGA_Draw_Next_Tetronimo(virtual_base);
+		//VGA_Pixel_Translation(x, y, &xPixel, &yPixel);
 		
 		while(bSuccess){
 			if (ADXL345_IsDataReady(file)){
