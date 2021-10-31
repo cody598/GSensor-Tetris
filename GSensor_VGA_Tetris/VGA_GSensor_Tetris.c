@@ -616,7 +616,7 @@ int main(int argc,char ** argv) {
 	// Start Tetris
 	if((c == '1'))
 	{	
-		bool changed = false;
+		bool changed = false, beginPhgase = true;;
 		int randTetronimoChoice = 0;
 		short **gridData;			
 		int i, j, xPixel, yPixel;
@@ -641,9 +641,16 @@ int main(int argc,char ** argv) {
 		//VGA_Pixel_Translation(x, y, &xPixel, &yPixel, 0);
 		
 		while(bSuccess){
-			randTetronimoChoice = Random_Number(virtual_base);
-			VGA_Draw_Next_Tetronimo(randTetronimoChoice, virtual_base);
-			
+			if(beginPhase == != true)
+			{
+				randTetronimoChoice = Random_Number(virtual_base);
+				VGA_Draw_Next_Tetronimo(randTetronimoChoice, virtual_base);
+			}
+			else 
+			{
+				beginPhase = false;
+			}
+
 			if (ADXL345_IsDataReady(file)){
 				bSuccess = ADXL345_XYZ_Read(file, szXYZ);
 				
