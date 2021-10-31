@@ -232,6 +232,36 @@ void VGA_Tetris_Setup(void *virtual_base)
 }
 
 /****************************************************************************************
+ * Initial Array
+****************************************************************************************/
+void Init_Array(short ** gridArray, void *virtual_base)
+{ 
+
+	int i ,j;
+	gridArray = malloc(sizeof(int *) * ROWS);
+	
+	for (i = 0; i < ROWS; i++) 
+	{
+		// malloc space for row i's M column elements
+		gridArray[i] = malloc(sizeof(int) * COLUMNS);
+	}
+	
+	for (i = 0; i < ROWS; i++) {
+		for (j = 0; j < COLUMNS; j++) {
+			gridArray[i][j] = 0x0000;
+    }
+}
+
+/****************************************************************************************
+ * Random Number Generator
+****************************************************************************************/
+void Random_Number(void *virtual_base)
+{ 
+
+	return rand() % 8;
+}
+
+/****************************************************************************************
  * Translation Table
 ****************************************************************************************/
 void VGA_Pixel_Translation(int x, int y, int * xPixelOut, int * yPixelOut, int choice)
@@ -587,34 +617,36 @@ int main(int argc,char ** argv) {
 	if((c == '1'))
 	{	
 		bool changed = false;
-		int randTetronimoChoice = rand() % 8;
-		short gridData [COLUMNS][ROWS];			
+		int randTetronimoChoice = 0;
+		short **gridData;			
 		int i, j, xPixel, yPixel;
-
-		for(i = 0; i < COLUMNS; i++)
-		{
-			
-			for (j = 0; j < ROWS; j++)
-			{
-				gridData[i][j] = BLACK;
-			}
-		}
 
 		int lineCount = 0;
 		int level = 0;
 		int score = 0;
 		
+		int old_x1, old_x2, old_x3, old_x4, new_x1, new_x2, new_x3, new_x4;
+		int old_y1, old_y2, old_y3, old_y4, new_y1, new_y2, new_y3, new_y4;
+		
 		VGA_Tetris_Setup(virtual_base);
 		VGA_Draw_Score(score, virtual_base);
 		VGA_Draw_Line(lineCount, virtual_base);
 		VGA_Draw_Level(level, virtual_base);
+		randTetronimoChoice = Random_Number(virtual_base);
 		VGA_Draw_Next_Tetronimo(randTetronimoChoice, virtual_base);
-		VGA_SquareTetronimoBorderDraw(0xFFFF, virtual_base);	//draw border
+		VGA_SquareTetronimoBorderDraw(WHITE, virtual_base);	//draw border
+		Init_Array(gridArray, virtual_base);
+		
+		usleep(3000);
 		//VGA_Pixel_Translation(x, y, &xPixel, &yPixel, 0);
 		
 		while(bSuccess){
+			randTetronimoChoice = Random_Number(virtual_base);
+			VGA_Draw_Next_Tetronimo(randTetronimoChoice, virtual_base);
+			
 			if (ADXL345_IsDataReady(file)){
 				bSuccess = ADXL345_XYZ_Read(file, szXYZ);
+				
 				if (bSuccess){
 					xg = (int16_t) szXYZ[0]*mg_per_digi;
 					yg = (int16_t) szXYZ[1]*mg_per_digi;

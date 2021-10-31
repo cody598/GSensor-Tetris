@@ -58,6 +58,7 @@
 #define ORANGE 0xFD20 // L
 #define BLACK 0x0000 
 #define GREY 0x9D13
+#define WHITE 0xFFFF
 
 #define PHYSMEM_32(addr) (*((unsigned int *)(virtual_base + (addr & HW_REGS_MASK)))) // Char
 #define PHYSMEM_16(addr) (*((unsigned short *)(virtual_base + (addr & HW_REGS_MASK)))) // Pixel
