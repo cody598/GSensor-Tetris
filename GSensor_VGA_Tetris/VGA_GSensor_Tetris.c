@@ -404,6 +404,42 @@ void VGA_Draw_Next_Tetronimo(int choice, void *virtual_base)
 }
 
 /****************************************************************************************
+ * Delete Old Tetronimo and Draw New
+****************************************************************************************/
+void VGA_Draw_New(int x1_old, int y1_old, int x2_old, int y2_old, int x3_old, int y3_old, int x4_old, int y4_old, int x1_new, int y1_new, int x2_new, int y2_new, int x3_new, int y3_new, int x4_new, int y4_new, short color, short ** gridArray, void *virtual_base)
+{ 
+	int xPixel, yPixel;
+	
+	// Delete Old
+	VGA_Pixel_Translation(x1_old, y1_old &xPixel, &yPixel, 0);
+	VGA_Draw_Tetronimo_Square(xPixel, yPixel, BLACK, virtual_base);
+	gridArray[x1_old][y1_old] = BLACK;
+	VGA_Pixel_Translation(x2_old, y2_old &xPixel, &yPixel, 0);
+	VGA_Draw_Tetronimo_Square(xPixel, yPixel, BLACK, virtual_base);
+	gridArray[x2_old][y2_old] = BLACK;
+	VGA_Pixel_Translation(x3_old, y3_old &xPixel, &yPixel, 0);
+	VGA_Draw_Tetronimo_Square(xPixel, yPixel, BLACK, virtual_base);
+	gridArray[x3_old][y3_old] = BLACK;
+	VGA_Pixel_Translation(x4_old, y4_old &xPixel, &yPixel, 0);
+	VGA_Draw_Tetronimo_Square(xPixel, yPixel, BLACK, virtual_base);
+	gridArray[x4_old][y4_old] = BLACK;
+	
+	// Draw New
+	VGA_Pixel_Translation(x1_new, y1_new &xPixel, &yPixel, 0);
+	VGA_Draw_Tetronimo_Square(xPixel, yPixel, color, virtual_base);
+	gridArray[x1_new][y1_new] = color;
+	VGA_Pixel_Translation(x2_new, y2_new &xPixel, &yPixel, 0);
+	VGA_Draw_Tetronimo_Square(xPixel, yPixel, color, virtual_base);
+	gridArray[x2_new][y2_new] = color;
+	VGA_Pixel_Translation(x3_new, y3_new &xPixel, &yPixel, 0);
+	VGA_Draw_Tetronimo_Square(xPixel, yPixel, color, virtual_base);
+	gridArray[x3_new][y3_new] = color;
+	VGA_Pixel_Translation(x4_new, y4_new &xPixel, &yPixel, 0);
+	VGA_Draw_Tetronimo_Square(xPixel, yPixel, color, virtual_base);
+	gridArray[x4_new][y4_new] = color;
+}
+
+/****************************************************************************************
  * Rotate Tetronimoes CW
 ****************************************************************************************/
 int VGA_Rotate_Tetronimo(int choice, int currentRotation, void *virtual_base)
