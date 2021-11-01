@@ -264,7 +264,7 @@ void Random_Number(void *virtual_base)
 /****************************************************************************************
  * Translation Table
 ****************************************************************************************/
-void VGA_Pixel_Translation(int x, int y, int * xPixelOut, int * yPixelOut, int choice)
+void VGA_Pixel_Translation(int x, int y, int * xPixelOut, int * yPixelOut, int choice, void *virtual_base)
 { 
 	if(x < 10 && y < 15 && choice == 0)
 	{
@@ -437,6 +437,74 @@ void VGA_Draw_New(int x1_old, int y1_old, int x2_old, int y2_old, int x3_old, in
 	VGA_Pixel_Translation(x4_new, y4_new &xPixel, &yPixel, 0);
 	VGA_Draw_Tetronimo_Square(xPixel, yPixel, color, virtual_base);
 	gridArray[x4_new][y4_new] = color;
+}
+
+/****************************************************************************************
+ * Check Each Row and Shift
+****************************************************************************************/
+int Row_Checker(short ** gridArray, void *virtual_base)
+{ 
+	int rows[ROWS];
+	int currentRow, highestRow, shiftRow, i, j, xPixel, yPixel, rowCount = 0;;
+	bool rowBlack = true, rowFilled = true;
+
+	
+	for(i = 0; i < ROWS; i++)
+	{
+		rows[i] = 0;
+	}
+	for (i = 0; i < ROWS; i++) 
+	{
+		for (j = 0; j < COLUMNS; j++) 
+		{
+			if(gridArray[i][j] == BLACK)
+			{
+				rowFilled = false;
+			}
+			else
+			{
+				rowBlack = false;
+			}
+		}
+		if(rowFilled == true)
+		{
+			rows[i] = 1;
+			rowCount++;
+		}
+		rowFilled = true;
+		
+		if(rowBlack == false)
+		{
+			highestRow = i;
+			rowBlack = true;
+			
+		}
+    }
+	
+	for(i = 0; i < highestRow; i++)
+	{
+		if(rows[i] == 1)
+		{
+			for(currentRow = i+1; i <= highestRow; currentRow++)
+			{
+				for(j = 0; j < COLUMNS; j++)
+				{
+					gridArray[i][j] = gridArray[currentRow][j];
+					gridArray[currentRow][j] = BLACK;
+					VGA_Pixel_Translation(j, currentRow, &xPixel, &yPixelOut, 0)
+					VGA_Draw_Tetronimo_Square(xPixel, yPixel, BLACK, virtual_base)	
+					VGA_Pixel_Translation(j, i, &xPixel, &yPixelOut, 0)
+					VGA_Draw_Tetronimo_Square(xPixel, yPixel, gridArray[i][j], virtual_base)	
+				}		
+			}
+		}
+		for(shiftRow = i; shiftRow <= highestRow; shiftRow++)
+		{
+			rows[shiftRow] = rows[shiftRow + 1];
+		}
+		highestRow--
+	}
+	return rowCount;
 }
 
 /****************************************************************************************
