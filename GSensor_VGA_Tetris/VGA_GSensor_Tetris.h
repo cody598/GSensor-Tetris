@@ -12,6 +12,8 @@
 #define COLUMNS 10
 #define SQUAREHEIGHT 30
 #define SQUAREWIDTH 15
+#define NEXTPIECEGRID 1
+#define PLAYAREAGRID 0
 // Play Area + Border (Values Are In Regards To Pixels)
 #define TOPOFFSET 0
 #define BOTTOMOFFSET 480
