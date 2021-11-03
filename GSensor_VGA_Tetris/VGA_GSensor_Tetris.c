@@ -16,6 +16,7 @@
 #include "ADXL345.h"
 #include "VGA_GSensor_Tetris.h"
 #include "hwlib.h"
+#include <time.h>
 
 /****************************************************************************************
  * GSensor Functions ADXL345
@@ -170,8 +171,8 @@ void VGA_Draw_Level(int level, void *virtual_base)
 ****************************************************************************************/
 void VGA_Draw_Tetronimo_Square(int xgrid, int ygrid, short color, void *virtual_base)
 {
-	// int xGridStart = 
-	// VGA_box
+	VGA_box(xgrid, ygrid, xgrid + SQUAREWIDTH -1, ygrid + SQUAREHEIGHT -1, WHITE, virtual_base);
+	VGA_box(xgrid + 2, ygrid + 2, xgrid + SQUAREWIDTH - 3, ygrid + SQUAREHEIGHT -5, color, virtual_base);
 
 
 }
@@ -234,7 +235,7 @@ void VGA_Tetris_Setup(void *virtual_base)
 /****************************************************************************************
  * Initial Array
 ****************************************************************************************/
-void Init_Array(short ** gridArray, void *virtual_base)
+/*void Init_Array(short ** gridArray, void *virtual_base)
 { 
 
 	int i ,j;
@@ -247,18 +248,21 @@ void Init_Array(short ** gridArray, void *virtual_base)
 	}
 	
 	for (i = 0; i < ROWS; i++) {
-		for (j = 0; j < COLUMNS; j++) {
+		for (j = 0; j < COLUMNS; j++) 
+		{
 			gridArray[i][j] = 0x0000;
+		}
     }
 }
+*/
 
 /****************************************************************************************
  * Random Number Generator
 ****************************************************************************************/
-void Random_Number(void *virtual_base)
+int Random_Number()
 { 
-
-	return rand() % 8;
+	int r = rand() % 7;
+	return r;
 }
 
 /****************************************************************************************
@@ -311,94 +315,109 @@ void VGA_SquareTetronimoBorderDraw(short color, void *virtual_base)
 }
 
 /****************************************************************************************
+ * Draw start screen
+****************************************************************************************/
+void VGA_DrawStartScreen(void *virtual_base)
+{ 
+	VGA_text (15, SCORETOPOFFSET,"  _______ ______ _______ _____  _____    _____", virtual_base);
+    VGA_text (15, SCORETOPOFFSET+1," |__   __|  ____|__   __|  __ \\ |_  _| / ____|", virtual_base);
+    VGA_text (15, SCORETOPOFFSET+2,"    | |  | |__     | |  | |__) | | |   | (___ ", virtual_base);
+    VGA_text (15, SCORETOPOFFSET+3,"    | |  |  __|    | |  |  _  /  | |    \\___ \\ ", virtual_base);
+    VGA_text (15, SCORETOPOFFSET+4,"    | |  | |____   | |  | | \\ \\ _| |_  ____) |", virtual_base);
+    VGA_text (15, SCORETOPOFFSET+5,"    |_|  |______|  |_|  |_|  \\_\\_____| _____/ ", virtual_base);
+}
+
+/****************************************************************************************
  * Draw Next Tetronimo Tetronimoes
 ****************************************************************************************/
 void VGA_Draw_Next_Tetronimo(int choice, void *virtual_base)
 { 
 	int xPixel, yPixel;
 	short color = BLACK;
-	int i,j;
+	int i;
+	printf("Choice: %d", choice);
 	switch(choice)
 	{
-		case 1:
+		case 0:
 			// Draw I Tetronimo
 			color = CYAN;
-			VGA_Pixel_Translation(0, 1, &xPixel, &yPixel, 1);
+			VGA_Pixel_Translation(0, 1, &xPixel, &yPixel, 1, virtual_base);
 			for(i = 0; i < 4; i++)
 			{
 				VGA_Draw_Tetronimo_Square(xPixel + (i * SQUAREWIDTH), yPixel, color, virtual_base);
 			}		
 			break;
-		case 2:
+		case 1:
 			// Draw J Tetronimo
 			color = BLUE;
-			VGA_Pixel_Translation(1, 1, &xPixel, &yPixel, 1);
+			VGA_Pixel_Translation(1, 1, &xPixel, &yPixel, 1, virtual_base);
 			VGA_Draw_Tetronimo_Square(xPixel, yPixel, color, virtual_base);
 			for(i = 0; i < 3; i++)
 			{
 				VGA_Draw_Tetronimo_Square(xPixel + (i * SQUAREWIDTH), yPixel + SQUAREHEIGHT, color, virtual_base);
 			}
 			break;
-		case 3:
+		case 2:
 			// Draw L Tetronimo
 			color = ORANGE;
-			VGA_Pixel_Translation(0, 2, &xPixel, &yPixel, 1);
+			VGA_Pixel_Translation(0, 2, &xPixel, &yPixel, 1, virtual_base);
 			for(i = 0; i < 3; i++)
 			{
 				VGA_Draw_Tetronimo_Square(xPixel + (i * SQUAREWIDTH), yPixel, color, virtual_base);
 			}
 			VGA_Draw_Tetronimo_Square(xPixel + (2 * SQUAREWIDTH), yPixel - SQUAREHEIGHT, color, virtual_base);
 			break;
-		case 4:
+		case 3:
 			// Draw O Tetronimo
 			color = YELLOW;
-			VGA_Pixel_Translation(1, 1, &xPixel, &yPixel, 1);
+			VGA_Pixel_Translation(1, 1, &xPixel, &yPixel, 1, virtual_base);
 			for(i = 0; i < 2; i++)
 			{
 				VGA_Draw_Tetronimo_Square(xPixel + (i * SQUAREWIDTH), yPixel, color, virtual_base);
 				VGA_Draw_Tetronimo_Square(xPixel + (i * SQUAREWIDTH), yPixel + SQUAREHEIGHT, color, virtual_base);
 			}
 			break;
-		case 5:
+		case 4:
 			// Draw S Tetronimo
 			color = GREEN;
-			VGA_Pixel_Translation(2, 1, &xPixel, &yPixel, 1);
+			VGA_Pixel_Translation(2, 1, &xPixel, &yPixel, 1, virtual_base);
 			for(i = 0; i < 2; i++)
 			{
 				VGA_Draw_Tetronimo_Square(xPixel + (i * SQUAREWIDTH), yPixel, color, virtual_base);
 			}
-			VGA_Pixel_Translation(1, 2, &xPixel, &yPixel, 1);
+			VGA_Pixel_Translation(1, 2, &xPixel, &yPixel, 1, virtual_base);
 			for(i = 0; i < 2; i++)
 			{
 				VGA_Draw_Tetronimo_Square(xPixel + (i * SQUAREWIDTH), yPixel, color, virtual_base);
 			}
 			
 			break;
-		case 6:
+		case 5:
 			// Draw T Tetronimo
 			color = PURPLE;
-			VGA_Pixel_Translation(1, 2, &xPixel, &yPixel, 1);
+			VGA_Pixel_Translation(1, 2, &xPixel, &yPixel, 1, virtual_base);
 			for(i = 0; i < 3; i++)
 			{
 				VGA_Draw_Tetronimo_Square(xPixel + (i * SQUAREWIDTH), yPixel, color, virtual_base);
 			}
 			VGA_Draw_Tetronimo_Square(xPixel + SQUAREWIDTH, yPixel - SQUAREHEIGHT, color, virtual_base);
 			break;
-		case 7:
+		case 6:
 			// Draw Z Tetronimo
 			color = RED;
-			VGA_Pixel_Translation(1, 1, &xPixel, &yPixel, 1);
+			VGA_Pixel_Translation(1, 1, &xPixel, &yPixel, 1, virtual_base);
 			for(i = 0; i < 2; i++)
 			{
 			VGA_Draw_Tetronimo_Square(xPixel + (i * SQUAREWIDTH), yPixel, color, virtual_base);
 			}
-			VGA_Pixel_Translation(2, 2, &xPixel, &yPixel, 1);
+			VGA_Pixel_Translation(2, 2, &xPixel, &yPixel, 1, virtual_base);
 			for(i = 0; i < 2; i++)
 			{
 				VGA_Draw_Tetronimo_Square(xPixel + (i * SQUAREWIDTH), yPixel, color, virtual_base);
 			}
 			break;
 		default:
+			printf("DEFAULT CASE, we should not be here!\n");
 			break;
 	}
 }
@@ -411,30 +430,30 @@ void VGA_Draw_New(int x1_old, int y1_old, int x2_old, int y2_old, int x3_old, in
 	int xPixel, yPixel;
 	
 	// Delete Old
-	VGA_Pixel_Translation(x1_old, y1_old &xPixel, &yPixel, 0);
+	VGA_Pixel_Translation(x1_old, y1_old, &xPixel, &yPixel, 0, virtual_base);
 	VGA_Draw_Tetronimo_Square(xPixel, yPixel, BLACK, virtual_base);
 	gridArray[x1_old][y1_old] = BLACK;
-	VGA_Pixel_Translation(x2_old, y2_old &xPixel, &yPixel, 0);
+	VGA_Pixel_Translation(x2_old, y2_old, &xPixel, &yPixel, 0, virtual_base);
 	VGA_Draw_Tetronimo_Square(xPixel, yPixel, BLACK, virtual_base);
 	gridArray[x2_old][y2_old] = BLACK;
-	VGA_Pixel_Translation(x3_old, y3_old &xPixel, &yPixel, 0);
+	VGA_Pixel_Translation(x3_old, y3_old, &xPixel, &yPixel, 0, virtual_base);
 	VGA_Draw_Tetronimo_Square(xPixel, yPixel, BLACK, virtual_base);
 	gridArray[x3_old][y3_old] = BLACK;
-	VGA_Pixel_Translation(x4_old, y4_old &xPixel, &yPixel, 0);
+	VGA_Pixel_Translation(x4_old, y4_old, &xPixel, &yPixel, 0, virtual_base);
 	VGA_Draw_Tetronimo_Square(xPixel, yPixel, BLACK, virtual_base);
 	gridArray[x4_old][y4_old] = BLACK;
 	
 	// Draw New
-	VGA_Pixel_Translation(x1_new, y1_new &xPixel, &yPixel, 0);
+	VGA_Pixel_Translation(x1_new, y1_new, &xPixel, &yPixel, 0, virtual_base);
 	VGA_Draw_Tetronimo_Square(xPixel, yPixel, color, virtual_base);
 	gridArray[x1_new][y1_new] = color;
-	VGA_Pixel_Translation(x2_new, y2_new &xPixel, &yPixel, 0);
+	VGA_Pixel_Translation(x2_new, y2_new, &xPixel, &yPixel, 0, virtual_base);
 	VGA_Draw_Tetronimo_Square(xPixel, yPixel, color, virtual_base);
 	gridArray[x2_new][y2_new] = color;
-	VGA_Pixel_Translation(x3_new, y3_new &xPixel, &yPixel, 0);
+	VGA_Pixel_Translation(x3_new, y3_new, &xPixel, &yPixel, 0, virtual_base);
 	VGA_Draw_Tetronimo_Square(xPixel, yPixel, color, virtual_base);
 	gridArray[x3_new][y3_new] = color;
-	VGA_Pixel_Translation(x4_new, y4_new &xPixel, &yPixel, 0);
+	VGA_Pixel_Translation(x4_new, y4_new, &xPixel, &yPixel, 0, virtual_base);
 	VGA_Draw_Tetronimo_Square(xPixel, yPixel, color, virtual_base);
 	gridArray[x4_new][y4_new] = color;
 }
@@ -491,10 +510,10 @@ int Row_Checker(short ** gridArray, void *virtual_base)
 				{
 					gridArray[i][j] = gridArray[currentRow][j];
 					gridArray[currentRow][j] = BLACK;
-					VGA_Pixel_Translation(j, currentRow, &xPixel, &yPixelOut, 0)
-					VGA_Draw_Tetronimo_Square(xPixel, yPixel, BLACK, virtual_base)	
-					VGA_Pixel_Translation(j, i, &xPixel, &yPixelOut, 0)
-					VGA_Draw_Tetronimo_Square(xPixel, yPixel, gridArray[i][j], virtual_base)	
+					VGA_Pixel_Translation(j, currentRow, &xPixel, &yPixel, 0, virtual_base);
+					VGA_Draw_Tetronimo_Square(xPixel, yPixel, BLACK, virtual_base);	
+					VGA_Pixel_Translation(j, i, &xPixel, &yPixel, 0, virtual_base);
+					VGA_Draw_Tetronimo_Square(xPixel, yPixel, gridArray[i][j], virtual_base);	
 				}		
 			}
 		}
@@ -502,7 +521,7 @@ int Row_Checker(short ** gridArray, void *virtual_base)
 		{
 			rows[shiftRow] = rows[shiftRow + 1];
 		}
-		highestRow--
+		highestRow--;
 	}
 	return rowCount;
 }
@@ -654,7 +673,7 @@ int main(int argc,char ** argv) {
 	int delay = 1000000; // 1 second
 	
 	// Dyanmic Box Variables
-	int16_t xg, yg, zg;
+	int16_t xg, yg;
 	
 	if( ( fd = open( "/dev/mem", ( O_RDWR | O_SYNC ) ) ) == -1 ) {
 		printf( "ERROR: could not open \"/dev/mem\"...\n" );
@@ -711,6 +730,7 @@ int main(int argc,char ** argv) {
     } 	
 	
 	VGA_Clear(virtual_base);
+	VGA_DrawStartScreen(virtual_base);
 	printf("Do you want to start playing Tetris?\n ");
 	printf("[1] Yes\n ");
 	printf("Choice: ");
@@ -720,48 +740,58 @@ int main(int argc,char ** argv) {
 	// Start Tetris
 	if((c == '1'))
 	{	
-		bool changed = false, beginPhgase = true;;
+		bool changed = false;
+		//bool beginPhase = true;
 		int randTetronimoChoice = 0;
 		short **gridData;			
-		int i, j, xPixel, yPixel;
+		int i, j;
+		//int xPixel, yPixel;
 
 		int lineCount = 0;
 		int level = 0;
 		int score = 0;
 		
-		int old_x1, old_x2, old_x3, old_x4, new_x1, new_x2, new_x3, new_x4;
-		int old_y1, old_y2, old_y3, old_y4, new_y1, new_y2, new_y3, new_y4;
+		//int old_x1, old_x2, old_x3, old_x4, new_x1, new_x2, new_x3, new_x4;
+		//int old_y1, old_y2, old_y3, old_y4, new_y1, new_y2, new_y3, new_y4;
 		
+		srand(time(0));
 		VGA_Tetris_Setup(virtual_base);
 		VGA_Draw_Score(score, virtual_base);
 		VGA_Draw_Line(lineCount, virtual_base);
 		VGA_Draw_Level(level, virtual_base);
-		randTetronimoChoice = Random_Number(virtual_base);
+		randTetronimoChoice = Random_Number();
+		printf("Tetronimo Num: %d", randTetronimoChoice);
 		VGA_Draw_Next_Tetronimo(randTetronimoChoice, virtual_base);
+		printf("Tetronimo Num: %d", randTetronimoChoice);
 		VGA_SquareTetronimoBorderDraw(WHITE, virtual_base);	//draw border
-		Init_Array(gridArray, virtual_base);
+		
+		gridData = malloc(sizeof(int *) * ROWS);
+	
+		for (i = 0; i < ROWS; i++) 
+		{
+			// malloc space for row i's M column elements
+			gridData[i] = malloc(sizeof(int) * COLUMNS);
+		}
+	
+		for (i = 0; i < ROWS; i++) {
+			for (j = 0; j < COLUMNS; j++) 
+			{
+				gridData[i][j] = 0x0000;
+			}
+    	}
+		//Init_Array(gridData, virtual_base);
 		
 		usleep(3000);
 		//VGA_Pixel_Translation(x, y, &xPixel, &yPixel, 0);
 		
 		while(bSuccess){
-			if(beginPhase == != true)
-			{
-				randTetronimoChoice = Random_Number(virtual_base);
-				VGA_Draw_Next_Tetronimo(randTetronimoChoice, virtual_base);
-			}
-			else 
-			{
-				beginPhase = false;
-			}
 
 			if (ADXL345_IsDataReady(file)){
 				bSuccess = ADXL345_XYZ_Read(file, szXYZ);
 				
 				if (bSuccess){
 					xg = (int16_t) szXYZ[0]*mg_per_digi;
-					yg = (int16_t) szXYZ[1]*mg_per_digi;
-					zg = (int16_t) szXYZ[2]*mg_per_digi;					
+					yg = (int16_t) szXYZ[1]*mg_per_digi;					
 					// Movement Detection
 					if(xg > 100){
 						changed = true;
