@@ -411,7 +411,7 @@ void VGA_Draw_New(int x1_old, int y1_old, int x2_old, int y2_old, int x3_old, in
 /****************************************************************************************
  * Check Each Row and Shift
 ****************************************************************************************/
-int Row_Checker(short ** gridArray, void *virtual_base)
+void Row_Checker(short ** gridArray, int level, int *score, void *virtual_base)
 { 
 	int rows[ROWS];
 	int currentRow, highestRow, shiftRow, i, j, xPixel, yPixel, rowCount = 0;;
@@ -471,8 +471,37 @@ int Row_Checker(short ** gridArray, void *virtual_base)
 		}
 		highestRow--;
 	}
-	return rowCount;
+	if(rowCount > 0)
+	{
+		addRowScore(rowCount, level, score, virtual_base);
+	}
 }
+
+/****************************************************************************************
+ * Add Score to Total Points
+****************************************************************************************/
+void addRowScore(int rowCount, int level, int *score)
+{
+	switch(rowCount)
+	{
+		case 1:
+			*score = *score + (40 * (level + 1));
+			break;
+		case 2:
+			*score = *score + (100 * (level + 1));
+			break;
+		case 3:
+			*score = *score + (300 * (level + 1));
+			break;
+		case 4:
+			*score = *score + (1200 * (level + 1));
+			break;
+		default:
+			break;	
+	}
+	VGA_Draw_Score(*score, virtual_base);
+}
+	
 
 /****************************************************************************************
  * Rotate Tetronimoes CW
