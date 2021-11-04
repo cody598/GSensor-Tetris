@@ -305,6 +305,7 @@ void VGA_Draw_Next_Tetronimo(int tetronimoChoice, int gridChoice void *virtual_b
 	printf("Choice: %d", choice);
 	switch(choice)
 	{
+		// Need to store current tetronemo square locations.
 		case 0:
 			// Draw I Tetronimo
 			color = CYAN;
