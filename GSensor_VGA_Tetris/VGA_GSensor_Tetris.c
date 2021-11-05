@@ -554,7 +554,7 @@ void Tetronimo_Shift(int **gridArray, int *xTetronimo, int *yTetronimo, int shif
 		old_y4 = *yTetronimo[3];
 		
 		case 1:
-			// Shift Right
+			// Shift Left
 				new_x1 = *xTetronimo[0] - 1;
 				new_y1 = *yTetronimo[0]
 				new_x2 = *xTetronimo[1] - 1
@@ -565,7 +565,7 @@ void Tetronimo_Shift(int **gridArray, int *xTetronimo, int *yTetronimo, int shif
 				new_y4 = *yTetronimo[3];	
 			break;
 		case 2:
-			// Shift Left
+			// Shift Right
 				new_x1 = *xTetronimo[0] + 1;
 				new_y1 = *yTetronimo[0]
 				new_x2 = *xTetronimo[1] + 1
