@@ -136,6 +136,51 @@ void VGA_Clear(void * virtual_base)
 	}		
 }
 
+void SCORE_Clear(void * virtual_base)
+{
+	int offset;
+	unsigned int row, col, char_ptr;
+	row = SCORETOPOFFSET;
+	offset = (SCORETOPOFFSET << 7) + SCORELEFTOFFSET;
+	for(col = SCORELEFTOFFSET; col < SCORELEFTOFFSET + 7; col++)
+	{
+		offset = (row << 7) + col;
+		char_ptr =  FPGA_CHAR_BASE + offset;		
+		PHYSMEM_32(char_ptr) = *("\0");
+		++offset;
+	}
+}
+
+void LINE_Clear(void * virtual_base)
+{
+	int offset;
+	unsigned int row, col, char_ptr;
+	row = LINETOPOFFSET;
+	offset = (LINETOPOFFSET << 7) + LINELEFTOFFSET;
+	for(col = LINELEFTOFFSET; col < LINELEFTOFFSET + 7; col++)
+	{
+		offset = (row << 7) + col;
+		char_ptr =  FPGA_CHAR_BASE + offset;		
+		PHYSMEM_32(char_ptr) = *("\0");
+		++offset;
+	}
+}
+
+void LEVEL_Clear(void * virtual_base)
+{
+	int offset;
+	unsigned int row, col, char_ptr;
+	row = LEVELTOPOFFSET;
+	offset = (LEVELTOPOFFSET << 7) + LEVELLEFTOFFSET;
+	for(col = LEVELLEFTOFFSET; col < LEVELLEFTOFFSET + 7; col++)
+	{
+		offset = (row << 7) + col;
+		char_ptr =  FPGA_CHAR_BASE + offset;		
+		PHYSMEM_32(char_ptr) = *("\0");
+		++offset;
+	}
+}
+
 /****************************************************************************************
  * Draw the Score based on the number from the Score Counter
 ****************************************************************************************/
@@ -143,6 +188,7 @@ void VGA_Draw_Score(int score, void *virtual_base)
 { 
 	char tempArray[MAXSCORELENGTH];
 	sprintf(tempArray, "%d", score); 
+	SCORE_Clear(virtual_base);
 	VGA_text (SCORELEFTOFFSET, SCORETOPOFFSET, tempArray, virtual_base);
 }
 
@@ -153,6 +199,7 @@ void VGA_Draw_Line(int lines, void *virtual_base)
 { 
 	char tempArray[MAXSCORELENGTH];
 	sprintf(tempArray, "%d", lines);
+	LINE_Clear(virtual_base);
 	VGA_text (LINELEFTOFFSET, LINETOPOFFSET, tempArray, virtual_base);
 }
 
@@ -163,6 +210,7 @@ void VGA_Draw_Level(int level, void *virtual_base)
 { 
 	char tempArray[MAXSCORELENGTH];
 	sprintf(tempArray, "%d", level);
+	LEVEL_Clear(virtual_base);
 	VGA_text (LEVELLEFTOFFSET, LEVELTOPOFFSET, tempArray, virtual_base);
 }
 
