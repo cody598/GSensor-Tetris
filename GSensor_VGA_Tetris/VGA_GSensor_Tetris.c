@@ -332,8 +332,8 @@ void VGA_SquareTetronimoBorderDraw(short color, void *virtual_base)
 void VGA_DrawStartScreen(void *virtual_base)
 { 
 	VGA_text (15, SCORETOPOFFSET,"  _______ ______ _______ _____  _____    _____", virtual_base);
-    VGA_text (15, SCORETOPOFFSET+1," |__   __|  ____|__   __|  __ \\ |_  _| / ____|", virtual_base);
-    VGA_text (15, SCORETOPOFFSET+2,"    | |  | |__     | |  | |__) | | |   | (___ ", virtual_base);
+    VGA_text (15, SCORETOPOFFSET+1," |__   __|  ____|__   __|  __ \\ |_  _|  / ____|", virtual_base);
+    VGA_text (15, SCORETOPOFFSET+2,"    | |  | |__     | |  | |__)|  | |   | (___ ", virtual_base);
     VGA_text (15, SCORETOPOFFSET+3,"    | |  |  __|    | |  |  _  /  | |    \\___ \\ ", virtual_base);
     VGA_text (15, SCORETOPOFFSET+4,"    | |  | |____   | |  | | \\ \\ _| |_  ____) |", virtual_base);
     VGA_text (15, SCORETOPOFFSET+5,"    |_|  |______|  |_|  |_|  \\_\\_____| _____/ ", virtual_base);
@@ -348,7 +348,6 @@ void VGA_Draw_Next_Tetronimo(int tetronimoChoice, int gridChoice, void *virtual_
 { 
 	short color = BLACK;
 	int i;
-	printf("Choice: %d", tetronimoChoice);
 	switch(tetronimoChoice)
 	{
 		// Need to store current tetronemo square locations.
@@ -360,7 +359,6 @@ void VGA_Draw_Next_Tetronimo(int tetronimoChoice, int gridChoice, void *virtual_
 				for(i = 0; i < 4; i++)
 				{
 					VGA_Draw_Tetronimo_Square(i,2, 0xABC0, gridChoice, virtual_base);
-					VGA_Draw_Tetronimo_Square(i+4,8, 0xABC0, gridChoice, virtual_base);	
 					
 				}
 			}
@@ -1182,7 +1180,7 @@ int main(int argc,char ** argv) {
 		bool changed = false;
 		//bool beginPhase = true;
 		int randTetronimoChoice = 0;
-		short **gridData;	
+		short **gridData;
 		int *xTetronimoData, *yTetronimoData, *currentRotation;		
 		int i, j;
 		//int xPixel, yPixel;
@@ -1225,14 +1223,13 @@ int main(int argc,char ** argv) {
 		j = 0;
 		for(i = 4; i < 8; i++)
 		{
-			xTetronimo[j] = i;
-			yTetronimo[j] = 8;
+			xTetronimoData[j] = i;
+			yTetronimoData[j] = 8;
 			j++;
 			gridData[i][j] = 0xABC0;
 		}
-		int *currentRotation;
 		*currentRotation = 1;
-		void VGA_Rotate_Tetronimo(0, currentRotation, gridArray, xTetronimo, yTetronimo, virtual_base);
+		VGA_Rotate_Tetronimo(0, currentRotation, gridData, xTetronimoData, yTetronimoData, virtual_base);
 		
 		usleep(3000);
 		
