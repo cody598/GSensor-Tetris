@@ -259,9 +259,6 @@ void VGA_Draw_Tetronimo_Square(int xgrid, int ygrid, short color, int choice, vo
 void VGA_Tetris_Setup(void *virtual_base)
 { 
 	VGA_Clear(virtual_base);	
-
-	// Draw Play Area Border
-	//VGA_SquareTetronimoBorderDraw(virtual_base); 
 	
 	// Draw Score Area
 	char score_text[10] = "Score: \0";
@@ -272,6 +269,11 @@ void VGA_Tetris_Setup(void *virtual_base)
 	VGA_text (SCORETEXTOFFSET, LINETOPOFFSET, lines_text, virtual_base);
 	VGA_text (SCORETEXTOFFSET, LEVELTOPOFFSET, level_text, virtual_base);
 	VGA_text (SCORETEXTOFFSET, NEXTPIECETOPOFFSET, next_text, virtual_base);
+	
+	VGA_Draw_Score(0, virtual_base);
+	VGA_Draw_Line(0, virtual_base);
+	VGA_Draw_Level(0, virtual_base);
+	VGA_SquareTetronimoBorderDraw(WHITE, virtual_base);	//draw border
 }
 
 /****************************************************************************************
@@ -441,11 +443,10 @@ void VGA_Draw_Next_Tetronimo(int tetronimoChoice, int gridChoice, void *virtual_
 }
 
 /****************************************************************************************
- * Delete Old Tetronimo and Draw New
+ * Delete Old Tetronimo
 ****************************************************************************************/
-void VGA_Draw_New(int x1_old, int y1_old, int x2_old, int y2_old, int x3_old, int y3_old, int x4_old, int y4_old, int x1_new, int y1_new, int x2_new, int y2_new, int x3_new, int y3_new, int x4_new, int y4_new, short color, short **gridArray, void *virtual_base)
-{ 
-	
+void VGA_Delete_Old(int x1_old, int y1_old, int x2_old, int y2_old, int x3_old, int y3_old, int x4_old, int y4_old, short **gridArray, void *virtual_base)
+{ 	
 	// Delete Old
 	VGA_Draw_Tetronimo_Square(x1_old, y1_old, BLACK, PLAYAREAGRID, virtual_base);
 	gridArray[x1_old][y1_old] = BLACK;
@@ -455,7 +456,13 @@ void VGA_Draw_New(int x1_old, int y1_old, int x2_old, int y2_old, int x3_old, in
 	gridArray[x3_old][y3_old] = BLACK;
 	VGA_Draw_Tetronimo_Square(x4_old, y4_old, BLACK, PLAYAREAGRID, virtual_base);
 	gridArray[x4_old][y4_old] = BLACK;
-	
+}
+
+/****************************************************************************************
+ * Draw New Tetronimo
+****************************************************************************************/
+void VGA_Draw_New(int x1_new, int y1_new, int x2_new, int y2_new, int x3_new, int y3_new, int x4_new, int y4_new, short color, short **gridArray, void *virtual_base)
+{ 
 	// Draw New
 	VGA_Draw_Tetronimo_Square(x1_new, y1_new, color, PLAYAREAGRID, virtual_base);
 	gridArray[x1_new][y1_new] = color;
@@ -604,7 +611,8 @@ void Tetronimo_Shift(short **gridArray, int *xTetronimo, int *yTetronimo, int sh
 			xTetronimo[3] = new_x4;
 			yTetronimo[3] = new_y4;
 			color = gridArray[old_y1][old_x1];
-			VGA_Draw_New(old_x1, old_y1, old_x2, old_y2, old_x3, old_y3, old_x4, old_y4, new_x1, new_y1, new_x2, new_y2, new_x3, new_y3, new_x4, new_y4, color, gridArray, virtual_base);
+			VGA_Delete_Old(old_x1, old_y1, old_x2, old_y2, old_x3, old_y3, old_x4, old_y4, gridArray, virtual_base)
+			VGA_Draw_New(new_x1, new_y1, new_x2, new_y2, new_x3, new_y3, new_x4, new_y4, color, gridArray, virtual_base);
 		}
 	}
 }
@@ -612,28 +620,28 @@ void Tetronimo_Shift(short **gridArray, int *xTetronimo, int *yTetronimo, int sh
 /****************************************************************************************
  * Add Score to Total Points
 ****************************************************************************************/
-/*void addRowScore(int rowCount, int level, int *score, void *virtual_base)
+void addRowScore(int rowCount, int level, int *score, void *virtual_base)
 {
+	int temp = *score;
 	switch(rowCount)
 	{
 		case 1:
-			*score = *score + (40 * (level + 1));
+			*score = temp + (40 * (level + 1));
 			break;
 		case 2:
-			*score = *score + (100 * (level + 1));
+			*score = temp + (100 * (level + 1));
 			break;
 		case 3:
-			*score = *score + (300 * (level + 1));
+			*score = temp + (300 * (level + 1));
 			break;
 		case 4:
-			*score = *score + (1200 * (level + 1));
+			*score = temp + (1200 * (level + 1));
 			break;
 		default:
 			break;	
 	}
-	VGA_Draw_Score(*score, virtual_base);
 }
-*/
+
 	
 
 /****************************************************************************************
@@ -641,460 +649,39 @@ void Tetronimo_Shift(short **gridArray, int *xTetronimo, int *yTetronimo, int sh
 ****************************************************************************************/
 void VGA_Rotate_Tetronimo(int choice, int *currentRotation, short **gridArray, int *xTetronimo, int *yTetronimo, void *virtual_base)
 { 
-	int old_x1, old_x2, old_x3, old_x4, old_y1, old_y2, old_y3, old_y4;
-	int new_x1, new_x2, new_x3, new_x4, new_y1, new_y2, new_y3, new_y4;
-	short color;
-	
-	old_x1 = xTetronimo[0];
-	old_x2 = xTetronimo[1];
-	old_x3 = xTetronimo[2];
-	old_x4 = xTetronimo[3];
-	old_y1 = yTetronimo[0];
-	old_y2 = yTetronimo[1];
-	old_y3 = yTetronimo[2];
-	old_y4 = yTetronimo[3];
-	color = gridArray[old_y1][old_x1];
-	switch(choice)
-	{
-		case 1:
-			// Rotate I Tetronimo
-			switch(*currentRotation)
-			{
-				case 1:
-					// Rotate from 1 to 2
-						new_x1 = xTetronimo[0] + 1;
-						new_y1 = yTetronimo[0] + 1;
-						new_x2 = xTetronimo[1];
-						new_y2 = yTetronimo[1];
-						new_x3 = xTetronimo[2] - 1;
-						new_y3 = yTetronimo[2] -1;
-						new_x4 = xTetronimo[3] - 2;
-						new_y4 = yTetronimo[3] -2;	
-					break;
-				case 2:
-					// Rotate from 2 to 1
-						new_x1 = xTetronimo[0] -1;
-						new_y1 = yTetronimo[0] - 1;
-						new_x2 = xTetronimo[1];
-						new_y2 = yTetronimo[1];
-						new_x3 = xTetronimo[2] + 1;
-						new_y3 = yTetronimo[2] + 1;
-						new_x4 = xTetronimo[3] + 2;
-						new_y4 = yTetronimo[3] + 2;
-					break;							
-				default:
-					break;
-			}		
-			if((new_x1 && new_y1 && new_x2 && new_y2 && new_x3 && new_y3 && new_x4 && new_y4) >= 0 && (new_y1 && new_y2 && new_y3 && new_y4 ) < ROWS && (new_x1 && new_x2 && new_x3 && new_x4 ) < COLUMNS)
-			{
-				if(gridArray[new_y1][new_x1] == BLACK && gridArray[new_y2][new_x2] == BLACK && gridArray[new_y3][new_x3] == BLACK && gridArray[new_y3][new_x3] == BLACK && gridArray[new_y4][new_x4] == BLACK)
-				{
-					xTetronimo[0] = new_x1;
-					yTetronimo[0] = new_y1;
-					xTetronimo[1] = new_x2 ;
-					yTetronimo[1] = new_y2;
-					xTetronimo[2] = new_x3;
-					yTetronimo[2] = new_y3;
-					xTetronimo[3] = new_x4;
-					yTetronimo[3] = new_y4 ;
-					VGA_Draw_New(old_x1, old_y1, old_x2, old_y2, old_x3, old_y3, old_x4, old_y4, new_x1, new_y1, new_x2, new_y2, new_x3, new_y3, new_x4, new_y4, color, gridArray, virtual_base);
-					if(*currentRotation == 1)
-					{
-						(*currentRotation)++;
-					}
-					else
-					{
-						(*currentRotation)--;
-					}
-				}
-			}
-			break;
-		case 2:
-			// Rotate J Tetronimo
-			switch(*currentRotation)
-			{
-				case 1:
-					// Rotate from 1 to 2
-						new_x1 = xTetronimo[0] + 1;
-						new_y1 = yTetronimo[0] - 1;
-						new_x2 = xTetronimo[1];
-						new_y2 = yTetronimo[1];
-						new_x3 = xTetronimo[2] - 1;
-						new_y3 = yTetronimo[2] + 1;
-						new_x4 = xTetronimo[3] - 2;
-						new_y4 = yTetronimo[3];
-					break;
-				case 2:
-					// Rotate from 2 to 3
-						new_x1 = xTetronimo[0] + 1;
-						new_y1 = yTetronimo[0] + 1;
-						new_x2 = xTetronimo[1];
-						new_y2 = yTetronimo[1];
-						new_x3 = xTetronimo[2] - 1;
-						new_y3 = yTetronimo[2] - 1;
-						new_x4 = xTetronimo[3];
-						new_y4 = yTetronimo[3] - 2;
-					break;
-				case 3:
-					// Rotate from 3 to 4
-						new_x1 = xTetronimo[0] - 1;
-						new_y1 = yTetronimo[0] + 1;
-						new_x2 = xTetronimo[1];
-						new_y2 = yTetronimo[1];
-						new_x3 = xTetronimo[2] + 1;
-						new_y3 = yTetronimo[2] - 1;
-						new_x4 = xTetronimo[3] + 2;
-						new_y4 = yTetronimo[3];					
-					break;
-				case 4:
-					// Rotate from 4 to 1
-						new_x1 = xTetronimo[0] - 1;
-						new_y1 = yTetronimo[0] - 1;
-						new_x2 = xTetronimo[1];
-						new_y2 = yTetronimo[1];
-						new_x3 = xTetronimo[2] + 1;
-						new_y3 = yTetronimo[2] + 1;
-						new_x4 = xTetronimo[3];
-						new_y4 = yTetronimo[3] + 2;
-					break;
-				default:
-					break;
-			}
-			if((new_x1 && new_y1 && new_x2 && new_y2 && new_x3 && new_y3 && new_x4 && new_y4) >= 0 && (new_y1 && new_y2 && new_y3 && new_y4 ) < ROWS && (new_x1 && new_x2 && new_x3 && new_x4 ) < COLUMNS)
-			{
-				if(gridArray[new_y1][new_x1] == BLACK && gridArray[new_y2][new_x2] == BLACK && gridArray[new_y3][new_x3] == BLACK && gridArray[new_y3][new_x3] == BLACK && gridArray[new_y4][new_x4] == BLACK)
-				{
-					xTetronimo[0] = new_x1;
-					yTetronimo[0] = new_y1;
-					xTetronimo[1] = new_x2;
-					yTetronimo[1] = new_y2;
-					xTetronimo[2] = new_x3;
-					yTetronimo[2] = new_y3;
-					xTetronimo[3] = new_x4;
-					yTetronimo[3] = new_y4;
-					VGA_Draw_New(old_x1, old_y1, old_x2, old_y2, old_x3, old_y3, old_x4, old_y4, new_x1, new_y1, new_x2, new_y2, new_x3, new_y3, new_x4, new_y4, color, gridArray, virtual_base);
-					if(*currentRotation == 4)
-					{
-						*currentRotation = 1;
-					}
-					else
-					{
-						(*currentRotation)++;
-					}
-				}
-			}
-			break;
-		case 3:
-			// Rotate L Tetronimo
-			switch(*currentRotation)
-			{
-				case 1:
-					// Rotate from 1 to 2
-						new_x1 = xTetronimo[0] -1;
-						new_y1 = yTetronimo[0] + 1;
-						new_x2 = xTetronimo[1];
-						new_y2 = yTetronimo[1];
-						new_x3 = xTetronimo[2] + 1;
-						new_y3 = yTetronimo[2] - 1;
-						new_x4 = xTetronimo[3];
-						new_y4 = yTetronimo[3] - 2;
-					break;
-				case 2:
-					// Rotate from 2 to 3
-						new_x1 = xTetronimo[0] -1;
-						new_y1 = yTetronimo[0] - 1;
-						new_x2 = xTetronimo[1];
-						new_y2 = yTetronimo[1];
-						new_x3 = xTetronimo[2] + 1;
-						new_y3 = yTetronimo[2] + 1;
-						new_x4 = xTetronimo[3] + 2;
-						new_y4 = yTetronimo[3];
-					break;
-				case 3:
-					// Rotate from 3 to 4
-						new_x1 = xTetronimo[0] -1;
-						new_y1 = yTetronimo[0] + 1;
-						new_x2 = xTetronimo[1];
-						new_y2 = yTetronimo[1];
-						new_x3 = xTetronimo[2] - 1;
-						new_y3 = yTetronimo[2] + 1;
-						new_x4 = xTetronimo[3];
-						new_y4 = yTetronimo[3] + 2;
-					break;
-				case 4:
-					// Rotate from 4 to 1
-						new_x1 = xTetronimo[0] + 1;
-						new_y1 = yTetronimo[0] + 1;
-						new_x2 = xTetronimo[1];
-						new_y2 = yTetronimo[1];
-						new_x3 = xTetronimo[2] - 1;
-						new_y3 = yTetronimo[2] - 1;
-						new_x4 = xTetronimo[3] - 2;
-						new_y4 = yTetronimo[3];
-					break;
-				default:
-					break;
-			}
-			if((new_x1 && new_y1 && new_x2 && new_y2 && new_x3 && new_y3 && new_x4 && new_y4) >= 0 && (new_y1 && new_y2 && new_y3 && new_y4 ) < ROWS && (new_x1 && new_x2 && new_x3 && new_x4 ) < COLUMNS)
-			{
-				if(gridArray[new_y1][new_x1] == BLACK && gridArray[new_y2][new_x2] == BLACK && gridArray[new_y3][new_x3] == BLACK && gridArray[new_y3][new_x3] == BLACK && gridArray[new_y4][new_x4] == BLACK)
-				{
-					xTetronimo[0] = new_x1;
-					yTetronimo[0] = new_y1;
-					xTetronimo[1] = new_x2;
-					yTetronimo[1] = new_y2;
-					xTetronimo[2] = new_x3;
-					yTetronimo[2] = new_y3;
-					xTetronimo[3] = new_x4;
-					yTetronimo[3] = new_y4;
-					VGA_Draw_New(old_x1, old_y1, old_x2, old_y2, old_x3, old_y3, old_x4, old_y4, new_x1, new_y1, new_x2, new_y2, new_x3, new_y3, new_x4, new_y4, color, gridArray, virtual_base);
-					if(*currentRotation == 4)
-					{
-						*currentRotation = 1;
-					}
-					else
-					{
-						(*currentRotation)++;
-					}
-				}
-			}
-			break;
-		case 4:
-			// Rotate O Tetronimo
-			switch(*currentRotation)
-			{
-				case 1:
-					break;
-			}
-			break;
-		case 5:
-			// Rotate S Tetronimo
-			switch(*currentRotation)
-			{
-				case 1:
-					// Rotate from 1 to 2
-						new_x1 = xTetronimo[0] - 1;
-						new_y1 = yTetronimo[0] + 1;
-						new_x2 = xTetronimo[1];
-						new_y2 = yTetronimo[1];
-						new_x3 = xTetronimo[2] - 1;
-						new_y3 = yTetronimo[2] - 1;
-						new_x4 = xTetronimo[3];
-						new_y4 = yTetronimo[3] - 2;
-					break;
-				case 2:
-					// Rotate from 2 to 3
-						new_x1 = xTetronimo[0] - 1;
-						new_y1 = yTetronimo[0];
-						new_x2 = xTetronimo[1];
-						new_y2 = yTetronimo[1] + 1;
-						new_x3 = xTetronimo[2] + 1;
-						new_y3 = yTetronimo[2];
-						new_x4 = xTetronimo[3] + 2;
-						new_y4 = yTetronimo[3] + 1;
-					break;
-				case 3:
-					// Rotate from 3 to 4
-						new_x1 = xTetronimo[0];
-						new_y1 = yTetronimo[0] - 2;
-						new_x2 = xTetronimo[1] - 1;
-						new_y2 = yTetronimo[1] - 1;
-						new_x3 = xTetronimo[2];
-						new_y3 = yTetronimo[2];
-						new_x4 = xTetronimo[3] - 1;
-						new_y4 = yTetronimo[3] + 1;
-					break;
-				case 4:
-					// Rotate from 4 to 1
-						new_x1 = xTetronimo[0] + 2;
-						new_y1 = yTetronimo[0] + 1;
-						new_x2 = xTetronimo[1] + 1;
-						new_y2 = yTetronimo[1];
-						new_x3 = xTetronimo[2];
-						new_y3 = yTetronimo[2] - 1;
-						new_x4 = xTetronimo[3] -1;
-						new_y4 = yTetronimo[3];
-					break;
-				default:
-					break;
-			}
-			if((new_x1 && new_y1 && new_x2 && new_y2 && new_x3 && new_y3 && new_x4 && new_y4) >= 0 && (new_y1 && new_y2 && new_y3 && new_y4 ) < ROWS && (new_x1 && new_x2 && new_x3 && new_x4 ) < COLUMNS)
-			{
-				if(gridArray[new_y1][new_x1] == BLACK && gridArray[new_y2][new_x2] == BLACK && gridArray[new_y3][new_x3] == BLACK && gridArray[new_y3][new_x3] == BLACK && gridArray[new_y4][new_x4] == BLACK)
-				{
-					xTetronimo[0] = new_x1;
-					yTetronimo[0] = new_y1;
-					xTetronimo[1] = new_x2 ;
-					yTetronimo[1] = new_y2;
-					xTetronimo[2] = new_x3;
-					yTetronimo[2] = new_y3;
-					xTetronimo[3] = new_x4;
-					yTetronimo[3] = new_y4 ;
-					VGA_Draw_New(old_x1, old_y1, old_x2, old_y2, old_x3, old_y3, old_x4, old_y4, new_x1, new_y1, new_x2, new_y2, new_x3, new_y3, new_x4, new_y4, color, gridArray, virtual_base);
-					if(*currentRotation == 4)
-					{
-						*currentRotation = 1;
-					}
-					else
-					{
-						(*currentRotation)++;
-					}
-				}
-			}
-			break;
-		case 6:
-			// Rotate T Tetronimo
-			switch(*currentRotation)
-			{
-				case 1:
-					// Rotate from 1 to 2
-						new_x1 = xTetronimo[0] + 1;
-						new_y1 = yTetronimo[0] - 1;
-						new_x2 = xTetronimo[1];
-						new_y2 = yTetronimo[1];
-						new_x3 = xTetronimo[2] - 1;
-						new_y3 = yTetronimo[2] + 1;
-						new_x4 = xTetronimo[3] - 1;
-						new_y4 = yTetronimo[3] -1;
-					break;
-				case 2:
-					// Rotate from 2 to 3
-						new_x1 = xTetronimo[0] + 1;
-						new_y1 = yTetronimo[0] + 1;
-						new_x2 = xTetronimo[1];
-						new_y2 = yTetronimo[1];
-						new_x3 = xTetronimo[2] - 1;
-						new_y3 = yTetronimo[2] - 1;
-						new_x4 = xTetronimo[3] + 1;
-						new_y4 = yTetronimo[3] - 1;
-					break;
-				case 3:
-					// Rotate from 3 to 4
-						new_x1 = xTetronimo[0] - 1;
-						new_y1 = yTetronimo[0] + 1;
-						new_x2 = xTetronimo[1];
-						new_y2 = yTetronimo[1];
-						new_x3 = xTetronimo[2] + 1;
-						new_y3 = yTetronimo[2] - 1;
-						new_x4 = xTetronimo[3] + 1;
-						new_y4 = yTetronimo[3] + 1;
-					break;
-				case 4:
-					// Rotate from 4 to 1
-						new_x1 = xTetronimo[0] - 1;
-						new_y1 = yTetronimo[0] - 1;
-						new_x2 = xTetronimo[1];
-						new_y2 = yTetronimo[1];
-						new_x3 = xTetronimo[2] + 1;
-						new_y3 = yTetronimo[2] + 1;
-						new_x4 = xTetronimo[3] - 1;
-						new_y4 = yTetronimo[3] + 1;
-					break;
-				default:
-					break;
-			}
-			if((new_x1 && new_y1 && new_x2 && new_y2 && new_x3 && new_y3 && new_x4 && new_y4) >= 0 && (new_y1 && new_y2 && new_y3 && new_y4 ) < ROWS && (new_x1 && new_x2 && new_x3 && new_x4 ) < COLUMNS)
-			{
-				if(gridArray[new_y1][new_x1] == BLACK && gridArray[new_y2][new_x2] == BLACK && gridArray[new_y3][new_x3] == BLACK && gridArray[new_y3][new_x3] == BLACK && gridArray[new_y4][new_x4] == BLACK)
-				{
-					xTetronimo[0] = new_x1;
-					yTetronimo[0] = new_y1;
-					xTetronimo[1] = new_x2 ;
-					yTetronimo[1] = new_y2;
-					xTetronimo[2] = new_x3;
-					yTetronimo[2] = new_y3;
-					xTetronimo[3] = new_x4;
-					yTetronimo[3] = new_y4 ;
-					VGA_Draw_New(old_x1, old_y1, old_x2, old_y2, old_x3, old_x3, old_x4, old_y4, new_x1, new_y1, new_x2, new_y2, new_x3, new_y3, new_x4, new_y4, color, gridArray, virtual_base);
-					if(*currentRotation == 4)
-					{
-						(*currentRotation) = 1;
-					}
-					else
-					{
-						(*currentRotation)++;
-					}
-				}
-			}
-			break;
-		case 7:
-			// Rotate Z Tetronimo
-			switch(*currentRotation)
-			{
-				case 1:
-					// Rotate from 1 to 2
-						new_x1 = xTetronimo[0] + 1;
-						new_y1 = yTetronimo[0] - 1;
-						new_x2 = xTetronimo[1];
-						new_y2 = yTetronimo[1];
-						new_x3 = xTetronimo[2] - 1;
-						new_y3 = yTetronimo[2] - 1;
-						new_x4 = xTetronimo[3] - 2;
-						new_y4 = yTetronimo[3];
-					break;
-				case 2:
-					// Rotate from 2 to 3
-						new_x1 = xTetronimo[0] + 1;
-						new_y1 = yTetronimo[0] + 2;
-						new_x2 = xTetronimo[1];
-						new_y2 = yTetronimo[1];
-						new_x3 = xTetronimo[2] + 1;
-						new_y3 = yTetronimo[2];
-						new_x4 = xTetronimo[3];
-						new_y4 = yTetronimo[3] + 1;
-					break;
-				case 3:
-					// Rotate from 3 to 4
-						new_x1 = xTetronimo[0] - 2;
-						new_y1 = yTetronimo[0];
-						new_x2 = xTetronimo[1] - 1;
-						new_y2 = yTetronimo[1] - 1;
-						new_x3 = xTetronimo[2];
-						new_y3 = yTetronimo[2];
-						new_x4 = xTetronimo[3] + 1;
-						new_y4 = yTetronimo[3] - 1;
-					break;
-				case 4:
-					// Rotate from 4 to 1
-						new_x1 = xTetronimo[0];
-						new_y1 = yTetronimo[0] - 1;
-						new_x2 = xTetronimo[1] - 1;
-						new_y2 = yTetronimo[1];
-						new_x3 = xTetronimo[2];
-						new_y3 = yTetronimo[2] + 1;
-						new_x4 = xTetronimo[3] + 1;
-						new_y4 = yTetronimo[3] + 2;
-					break;
-				default:
-					break;
-			}
 
-			if((new_x1 && new_y1 && new_x2 && new_y2 && new_x3 && new_y3 && new_x4 && new_y4) >= 0 && (new_y1 && new_y2 && new_y3 && new_y4 ) < ROWS && (new_x1 && new_x2 && new_x3 && new_x4 ) < COLUMNS)
-			{
-				if(gridArray[new_y1][new_x1] == BLACK && gridArray[new_y2][new_x2] == BLACK && gridArray[new_y3][new_x3] == BLACK && gridArray[new_y3][new_x3] == BLACK && gridArray[new_y4][new_x4] == BLACK)
-				{
-					xTetronimo[0] = new_x1;
-					yTetronimo[0] = new_y1;
-					xTetronimo[1] = new_x2 ;
-					yTetronimo[1] = new_y2;
-					xTetronimo[2] = new_x3;
-					yTetronimo[2] = new_y3;
-					xTetronimo[3] = new_x4;
-					yTetronimo[3] = new_y4 ;
-					VGA_Draw_New(old_x1, old_x1, old_x2, old_y2, old_x3, old_x3, old_x4, old_y4, new_x1, new_y1, new_x2, new_y2, new_x3, new_y3, new_x4, new_y4, color, gridArray, virtual_base);
-					if(*currentRotation == 4)
-					{
-						(*currentRotation) = 1;
-					}
-					else
-					{
-						(*currentRotation)++;
-					}
-				}
-			}
-			break;
-		default:
-			break;
+}
+
+/****************************************************************************************
+ * Initialize Multiple Arrays
+****************************************************************************************/
+void initArrays(short **dataArray, int *xArray, int *yArray)
+{ 
+	free(dataArray);
+	free(xArray);
+	free(yArray);
+	
+	dataArray = malloc(sizeof(int *) * ROWS);
+	xArray = malloc(sizeof(int *) * 4);
+	yArray = malloc(sizeof(int *) * 4);
+
+	for (i = 0; i < ROWS; i++) 
+	{
+		// malloc space for row i's M column elements
+		dataArray[i] = malloc(sizeof(int) * COLUMNS);
+	}
+	
+	for (i = 0; i < ROWS; i++) 
+	{
+		for (j = 0; j < COLUMNS; j++) 
+		{
+			DataArray[i][j] = 0x0000;
+		}
+    }
+	for(i = 0; i < 4; i++)
+	{
+		xArray[i] = 0;
+		yArray[i] = 0;
 	}
 }
 
@@ -1178,58 +765,15 @@ int main(int argc,char ** argv) {
 	if((c == '1'))
 	{	
 		bool changed = false;
-		//bool beginPhase = true;
-		int randTetronimoChoice = 0;
 		short **gridData;
-		int *xTetronimoData, *yTetronimoData, *currentRotation;		
-		int i, j;
-		//int xPixel, yPixel;
-
-		int lineCount = 0;
-		int level = 0;
-		int score = 0;	
+		int *xTetrominoData, *yTetrominoData, *currentRotation;		
+		int lineCount = 0, level = 0, score = 0, randTetronimoChoice = 0;
 		
 		srand(time(0));
 		VGA_Tetris_Setup(virtual_base);
-		VGA_Draw_Score(score, virtual_base);
-		VGA_Draw_Line(lineCount, virtual_base);
-		VGA_Draw_Level(level, virtual_base);
 		randTetronimoChoice = Random_Number();
 		VGA_Draw_Next_Tetronimo(randTetronimoChoice, NEXTPIECEGRID, virtual_base);
-		printf("Tetronimo Num: %d", randTetronimoChoice);
-		VGA_SquareTetronimoBorderDraw(WHITE, virtual_base);	//draw border
-		VGA_Draw_Next_Tetronimo(0, 0, virtual_base);
-
-		
-		gridData = malloc(sizeof(int *) * ROWS);
-		xTetronimoData = malloc(sizeof(int *) * 4);
-		yTetronimoData = malloc(sizeof(int *) * 4);
-		
-		for (i = 0; i < ROWS; i++) 
-		{
-			// malloc space for row i's M column elements
-			gridData[i] = malloc(sizeof(int) * COLUMNS);
-		}
-	
-		for (i = 0; i < ROWS; i++) {
-			for (j = 0; j < COLUMNS; j++) 
-			{
-				gridData[i][j] = 0x0000;
-			}
-    	}
-		
-
-		i = 4;
-		j = 0;
-		for(i = 4; i < 8; i++)
-		{
-			xTetronimoData[j] = i;
-			yTetronimoData[j] = 8;
-			j++;
-			gridData[i][j] = 0xABC0;
-		}
-		*currentRotation = 1;
-		VGA_Rotate_Tetronimo(0, currentRotation, gridData, xTetronimoData, yTetronimoData, virtual_base);
+		initArrays(gridData, xTetrominoData, yTetrominoData);
 		
 		usleep(3000);
 		
@@ -1273,7 +817,9 @@ int main(int argc,char ** argv) {
 	else if((c != '1'))
 	{
 		exit(0);
-    
+		free(dataArray);
+		free(xArray);
+		free(yArray);
 	}
 	if (!bSuccess)
 	printf("Failed to access accelerometer\r\n");
@@ -1289,6 +835,9 @@ int main(int argc,char ** argv) {
 		return( 1 );
 	}
 
+	free(dataArray);
+	free(xArray);
+	free(yArray);
 	close( fd );
 
 	return( 0 );
