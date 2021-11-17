@@ -19,9 +19,22 @@
 #include <time.h>
 
 /****************************************************************************************
+ * Tetromino Struct
+****************************************************************************************/
+struct Tetromino 
+{
+	short color;
+	int x[4];
+	int y[4];
+	int rotation;
+};
+
+
+/****************************************************************************************
  * GSensor Functions ADXL345
 ****************************************************************************************/
-bool ADXL345_REG_WRITE(int file, uint8_t address, uint8_t value){
+bool ADXL345_REG_WRITE(int file, uint8_t address, uint8_t value)
+{
 	bool bSuccess = false;
 	uint8_t szValue[2];
 	
@@ -224,9 +237,9 @@ void VGA_Draw_Level(int level, void *virtual_base)
 }
 
 /****************************************************************************************
- * Draw Tetronimo Square with Pixel Translation
+ * Draw Tetromino Square with Pixel Translation
 ****************************************************************************************/
-void VGA_Draw_Tetronimo_Square(int xgrid, int ygrid, short color, int choice, void *virtual_base)
+void VGA_Draw_Tetromino_Square(int xgrid, int ygrid, short color, int choice, void *virtual_base)
 // Need GRID ARRAY
 {
 	int xPixelTopLeftOuter, yPixelTopLeftOuter, xPixelBottomRightOuter, yPixelBottomRightOuter, xPixelTopLeftInner, yPixelTopLeftInner, xPixelBottomRightInner, yPixelBottomRightInner;
@@ -234,55 +247,20 @@ void VGA_Draw_Tetronimo_Square(int xgrid, int ygrid, short color, int choice, vo
 	{
 		xPixelTopLeftOuter = PLAYLEFTOFFSET +(xgrid * SQUAREWIDTH);
 		yPixelTopLeftOuter = ygrid * SQUAREHEIGHT;
-		xPixelTopLeftInner = PLAYLEFTOFFSET +(xgrid * SQUAREWIDTH) + 2;
-		yPixelTopLeftInner = (ygrid * SQUAREHEIGHT) + 4;
+		xPixelTopLeftInner = xPixelTopLeftOuter + 2;
+		yPixelTopLeftInner = yPixelTopLeftOuter + 4;
 	}
 	if(xgrid < 4 && ygrid < 4 && choice == 1)
 	{
 		xPixelTopLeftOuter = NEXTPIECEPIXELLEFTOFFSET + (xgrid * SQUAREWIDTH);
 		yPixelTopLeftOuter = NEXTPIECEPIXELTOPOFFSET + (ygrid * SQUAREHEIGHT);
-		xPixelTopLeftInner = NEXTPIECEPIXELLEFTOFFSET +(xgrid * SQUAREWIDTH) + 2;
-		yPixelTopLeftInner = NEXTPIECEPIXELLEFTOFFSET + (ygrid * SQUAREHEIGHT) + 4;
+		xPixelTopLeftInner = xPixelTopLeftOuter + 2;
+		yPixelTopLeftInner = yPixelTopLeftOuter + 4;
 	}
-	xPixelBottomRightOuter = xPixelTopLeftOuter + SQUAREWIDTH -1;
-	yPixelBottomRightOuter = yPixelTopLeftOuter + SQUAREHEIGHT -1;
-	xPixelBottomRightInner = xPixelTopLeftOuter + SQUAREWIDTH -3;
-	yPixelBottomRightInner = yPixelTopLeftOuter + SQUAREHEIGHT -5;
-	
-	VGA_box(xPixelTopLeftOuter, yPixelTopLeftOuter, xPixelBottomRightOuter, yPixelBottomRightOuter, WHITE, virtual_base);
-	VGA_box(xPixelTopLeftInner, yPixelTopLeftInner, xPixelBottomRightInner, yPixelBottomRightInner, color, virtual_base);
-}
 
-/****************************************************************************************
- * Initial Setup
-****************************************************************************************/
-void VGA_Tetris_Setup(void *virtual_base)
-{ 
-	VGA_Clear(virtual_base);	
 	
-	// Draw Score Area
-	char score_text[10] = "Score: \0";
-	char lines_text[10] = "Lines:  \0";
-	char level_text[10] = "Level: \0";
-	char next_text[10] = "Next: \0";
-	VGA_text (SCORETEXTOFFSET, SCORETOPOFFSET, score_text, virtual_base);
-	VGA_text (SCORETEXTOFFSET, LINETOPOFFSET, lines_text, virtual_base);
-	VGA_text (SCORETEXTOFFSET, LEVELTOPOFFSET, level_text, virtual_base);
-	VGA_text (SCORETEXTOFFSET, NEXTPIECETOPOFFSET, next_text, virtual_base);
-	
-	VGA_Draw_Score(0, virtual_base);
-	VGA_Draw_Line(0, virtual_base);
-	VGA_Draw_Level(0, virtual_base);
-	VGA_SquareTetronimoBorderDraw(WHITE, virtual_base);	//draw border
-}
-
-/****************************************************************************************
- * Random Number Generator
-****************************************************************************************/
-int Random_Number()
-{ 
-	int r = rand() % 7;
-	return r;
+	VGA_box(xPixelTopLeftOuter, yPixelTopLeftOuter, xPixelTopLeftOuter + XBOTTOMRIGHTOUTEROFFSET, yPixelTopLeftOuter + YBOTTOMRIGHTOUTEROFFSET, WHITE, virtual_base); 
+	VGA_box(xPixelTopLeftInner, yPixelTopLeftInner, xPixelTopLeftInner + XBOTTOMRIGHTINNEROFFSET, yPixelTopLeftInner + YBOTTOMRIGHTINNEROFFSET, CYAN, virtual_base); // Error With Color	
 }
 
 /****************************************************************************************
@@ -295,12 +273,10 @@ void State_Machine_Check( void *virtual_base)
 
 
 
-
-
 /****************************************************************************************
  * Draw a Grey Colored Tetromino Square w/ a Black Border around the Grid
 ****************************************************************************************/
-void VGA_SquareTetronimoBorderDraw(short color, void *virtual_base)
+void VGA_SquareTetrominoBorderDraw(short color, void *virtual_base)
 { 
 	int row, col;
 	for(row = 0; row < ROWS+1; row++)
@@ -329,6 +305,29 @@ void VGA_SquareTetronimoBorderDraw(short color, void *virtual_base)
 }
 
 /****************************************************************************************
+ * Initial Setup
+****************************************************************************************/
+void VGA_Tetris_Setup(void *virtual_base)
+{ 
+	VGA_Clear(virtual_base);	
+	
+	// Draw Score Area
+	char score_text[10] = "Score: \0";
+	char lines_text[10] = "Lines:  \0";
+	char level_text[10] = "Level: \0";
+	char next_text[10] = "Next: \0";
+	VGA_text (SCORETEXTOFFSET, SCORETOPOFFSET, score_text, virtual_base);
+	VGA_text (SCORETEXTOFFSET, LINETOPOFFSET, lines_text, virtual_base);
+	VGA_text (SCORETEXTOFFSET, LEVELTOPOFFSET, level_text, virtual_base);
+	VGA_text (SCORETEXTOFFSET, NEXTPIECETOPOFFSET, next_text, virtual_base);
+	
+	VGA_Draw_Score(0, virtual_base);
+	VGA_Draw_Line(0, virtual_base);
+	VGA_Draw_Level(0, virtual_base);
+	VGA_SquareTetrominoBorderDraw(WHITE, virtual_base);	//draw border
+}
+
+/****************************************************************************************
  * Draw start screen
 ****************************************************************************************/
 void VGA_DrawStartScreen(void *virtual_base)
@@ -344,23 +343,37 @@ void VGA_DrawStartScreen(void *virtual_base)
 }
 
 /****************************************************************************************
- * Draw Next Tetronimo Tetronimoes
+ * Draw Next Tetromino Tetrominoes
 ****************************************************************************************/
-void VGA_Draw_Next_Tetronimo(int tetronimoChoice, int gridChoice, void *virtual_base)
+void VGA_Draw_Next_Tetromino(int tetrominoChoice, int gridChoice, struct Tetromino * tetr, void *virtual_base)
 { 
 	short color = BLACK;
 	int i;
-	switch(tetronimoChoice)
+	for(i = 0; i < 4; i++)
 	{
-		// Need to store current tetronemo square locations.
+		tetr->x[i] = 0;
+		tetr->y[i] = 0;
+	}
+	tetr->rotation = 0;
+
+	//add random color selection!
+	tetr->color = 0x249B;
+
+
+	switch(tetrominoChoice)
+	{
+		// Need to store current tetromino square locations.
 		case 0:
-			// Draw I Tetronimo
+			// Draw I Tetromino
 			color = CYAN;
 			if(gridChoice == 0)
 			{
-				for(i = 0; i < 4; i++)
+				for(i = 3; i < 7; i++)
 				{
-					VGA_Draw_Tetronimo_Square(i,2, 0xABC0, gridChoice, virtual_base);
+					tetr->x[i-3] = i;
+					tetr->y[i-3] = 0;
+					tetr->color = color;
+					VGA_Draw_Tetromino_Square(i,0, color, gridChoice, virtual_base);
 					
 				}
 			}
@@ -369,72 +382,145 @@ void VGA_Draw_Next_Tetronimo(int tetronimoChoice, int gridChoice, void *virtual_
 
 				for(i = 0; i < 4; i++)
 				{
-					VGA_Draw_Tetronimo_Square(i, 2, color, gridChoice, virtual_base);
+					//tetr->x[i];
+					//->y[2];
+					VGA_Draw_Tetromino_Square(i, 2, color, gridChoice, virtual_base);
 				}
 			}
-	
-
 			break;
 		case 1:
-			// Draw J Tetronimo
+			// Draw J Tetromino
 			color = BLUE;
-			VGA_Draw_Tetronimo_Square(2, 2, color, gridChoice, virtual_base);
-			for(i = 0; i < 3; i++)
+			if(gridChoice == 0)
 			{
-				VGA_Draw_Tetronimo_Square(i, 1, color, gridChoice, virtual_base);
+				VGA_Draw_Tetromino_Square(5, 1, color, gridChoice, virtual_base);
+				for(i = 3; i < 6; i++)
+				{
+					VGA_Draw_Tetromino_Square(i, 0, color, gridChoice, virtual_base);
+				}
+			}
+			else if(gridChoice == 1)
+			{
+				VGA_Draw_Tetromino_Square(2, 2, color, gridChoice, virtual_base);
+				for(i = 0; i < 3; i++)
+				{
+					VGA_Draw_Tetromino_Square(i, 1, color, gridChoice, virtual_base);
+				}
 			}
 			break;
 		case 2:
-			// Draw L Tetronimo
+			// Draw L Tetromino
 			color = ORANGE;
-			for(i = 0; i < 3; i++)
+			if(gridChoice == 0)
 			{
-				VGA_Draw_Tetronimo_Square(i, 1, color, gridChoice, virtual_base);
+				for(i = 3; i < 6; i++)
+				{
+					VGA_Draw_Tetromino_Square(i, 0, color, gridChoice, virtual_base);
+				}
+				VGA_Draw_Tetromino_Square(3, 1, color, gridChoice, virtual_base);
 			}
-			VGA_Draw_Tetronimo_Square(0, 2, color, gridChoice, virtual_base);
+			else if(gridChoice == 1)
+			{
+				for(i = 0; i < 3; i++)
+				{
+					VGA_Draw_Tetromino_Square(i, 1, color, gridChoice, virtual_base);
+				}
+				VGA_Draw_Tetromino_Square(0, 2, color, gridChoice, virtual_base);
+			}
 			break;
 		case 3:
-			// Draw O Tetronimo
+			// Draw O Tetromino
 			color = YELLOW;
-			for(i = 0; i < 2; i++)
+			if(gridChoice == 0)
 			{
-				VGA_Draw_Tetronimo_Square(i, 1, color, gridChoice, virtual_base);
-				VGA_Draw_Tetronimo_Square(i, 2, color, gridChoice, virtual_base);
+				for(i = 3; i < 5; i++)
+				{
+					VGA_Draw_Tetromino_Square(i, 0, color, gridChoice, virtual_base);
+					VGA_Draw_Tetromino_Square(i, 1, color, gridChoice, virtual_base);
+				}
+			}
+			else if(gridChoice == 1)
+			{
+				for(i = 0; i < 2; i++)
+				{
+					VGA_Draw_Tetromino_Square(i, 1, color, gridChoice, virtual_base);
+					VGA_Draw_Tetromino_Square(i, 2, color, gridChoice, virtual_base);
+				}
 			}
 			break;
 		case 4:
-			// Draw S Tetronimo
+			// Draw S Tetromino
 			color = GREEN;
-			for(i = 1; i < 3; i++)
+			if(gridChoice == 0)
 			{
-				VGA_Draw_Tetronimo_Square(i, 1, color, gridChoice, virtual_base);
+				for(i = 4; i < 6; i++)
+				{
+					VGA_Draw_Tetromino_Square(i, 0, color, gridChoice, virtual_base);
+				}
+				for(i = 3; i < 5; i++)
+				{
+					VGA_Draw_Tetromino_Square(i, 1, color, gridChoice, virtual_base);
+				}
 			}
-			for(i = 0; i < 2; i++)
+			else if(gridChoice == 1)
 			{
-				VGA_Draw_Tetronimo_Square(i, 2, color, gridChoice, virtual_base);
+				for(i = 1; i < 3; i++)
+				{
+					VGA_Draw_Tetromino_Square(i, 1, color, gridChoice, virtual_base);
+				}
+				for(i = 0; i < 2; i++)
+				{
+					VGA_Draw_Tetromino_Square(i, 2, color, gridChoice, virtual_base);
+				}
 			}
 			
 			break;
 		case 5:
-			// Draw T Tetronimo
+			// Draw T Tetromino
 			color = PURPLE;
-			for(i = 0; i < 3; i++)
+			if(gridChoice == 0)
 			{
-				VGA_Draw_Tetronimo_Square(i, 2, color, gridChoice, virtual_base);
+				for(i = 3; i < 6; i++)
+				{
+					VGA_Draw_Tetromino_Square(i, 1, color, gridChoice, virtual_base);
+				}
+				VGA_Draw_Tetromino_Square(4, 0, color, gridChoice, virtual_base);
 			}
-			VGA_Draw_Tetronimo_Square(2, 1, color, gridChoice, virtual_base);
+			else if(gridChoice == 1)
+			{
+				for(i = 0; i < 3; i++)
+				{
+					VGA_Draw_Tetromino_Square(i, 2, color, gridChoice, virtual_base);
+				}
+				VGA_Draw_Tetromino_Square(2, 1, color, gridChoice, virtual_base);
+			}
 			break;
 		case 6:
-			// Draw Z Tetronimo
+			// Draw Z Tetromino
 			color = RED;
-			for(i = 0; i < 2; i++)
+			if(gridChoice == 0)
 			{
-				VGA_Draw_Tetronimo_Square(i, 1, color, gridChoice, virtual_base);
+				for(i = 3; i < 5; i++)
+				{
+					VGA_Draw_Tetromino_Square(i, 0, color, gridChoice, virtual_base);
+				}
+				for(i = 4; i < 6; i++)
+				{
+					VGA_Draw_Tetromino_Square(i, 1, color, gridChoice, virtual_base);
+				}
 			}
-			for(i = 1; i < 3; i++)
+			else if(gridChoice == 1)
 			{
-				VGA_Draw_Tetronimo_Square(i, 2, color, gridChoice, virtual_base);
+				for(i = 0; i < 2; i++)
+				{
+					VGA_Draw_Tetromino_Square(i, 1, color, gridChoice, virtual_base);
+				}
+				for(i = 1; i < 3; i++)
+				{
+					VGA_Draw_Tetromino_Square(i, 2, color, gridChoice, virtual_base);
+				}
 			}
+
 			break;
 		default:
 			printf("DEFAULT CASE, we should not be here!\n");
@@ -443,34 +529,34 @@ void VGA_Draw_Next_Tetronimo(int tetronimoChoice, int gridChoice, void *virtual_
 }
 
 /****************************************************************************************
- * Delete Old Tetronimo
+ * Delete Old Tetromino
 ****************************************************************************************/
 void VGA_Delete_Old(int x1_old, int y1_old, int x2_old, int y2_old, int x3_old, int y3_old, int x4_old, int y4_old, short **gridArray, void *virtual_base)
 { 	
 	// Delete Old
-	VGA_Draw_Tetronimo_Square(x1_old, y1_old, BLACK, PLAYAREAGRID, virtual_base);
+	VGA_Draw_Tetromino_Square(x1_old, y1_old, BLACK, PLAYAREAGRID, virtual_base);
 	gridArray[x1_old][y1_old] = BLACK;
-	VGA_Draw_Tetronimo_Square(x2_old, y2_old, BLACK, PLAYAREAGRID, virtual_base);
+	VGA_Draw_Tetromino_Square(x2_old, y2_old, BLACK, PLAYAREAGRID, virtual_base);
 	gridArray[x2_old][y2_old] = BLACK;
-	VGA_Draw_Tetronimo_Square(x3_old, y3_old, BLACK, PLAYAREAGRID, virtual_base);
+	VGA_Draw_Tetromino_Square(x3_old, y3_old, BLACK, PLAYAREAGRID, virtual_base);
 	gridArray[x3_old][y3_old] = BLACK;
-	VGA_Draw_Tetronimo_Square(x4_old, y4_old, BLACK, PLAYAREAGRID, virtual_base);
+	VGA_Draw_Tetromino_Square(x4_old, y4_old, BLACK, PLAYAREAGRID, virtual_base);
 	gridArray[x4_old][y4_old] = BLACK;
 }
 
 /****************************************************************************************
- * Draw New Tetronimo
+ * Draw New Tetromino
 ****************************************************************************************/
 void VGA_Draw_New(int x1_new, int y1_new, int x2_new, int y2_new, int x3_new, int y3_new, int x4_new, int y4_new, short color, short **gridArray, void *virtual_base)
 { 
 	// Draw New
-	VGA_Draw_Tetronimo_Square(x1_new, y1_new, color, PLAYAREAGRID, virtual_base);
+	VGA_Draw_Tetromino_Square(x1_new, y1_new, color, PLAYAREAGRID, virtual_base);
 	gridArray[x1_new][y1_new] = color;
-	VGA_Draw_Tetronimo_Square(x2_new, y2_new, color, PLAYAREAGRID, virtual_base);
+	VGA_Draw_Tetromino_Square(x2_new, y2_new, color, PLAYAREAGRID, virtual_base);
 	gridArray[x2_new][y2_new] = color;
-	VGA_Draw_Tetronimo_Square(x3_new, y3_new, color, PLAYAREAGRID, virtual_base);
+	VGA_Draw_Tetromino_Square(x3_new, y3_new, color, PLAYAREAGRID, virtual_base);
 	gridArray[x3_new][y3_new] = color;
-	VGA_Draw_Tetronimo_Square(x4_new, y4_new, color, PLAYAREAGRID, virtual_base);
+	VGA_Draw_Tetromino_Square(x4_new, y4_new, color, PLAYAREAGRID, virtual_base);
 	gridArray[x4_new][y4_new] = color;
 }
 
@@ -526,8 +612,8 @@ void Row_Checker(short ** gridArray, int level, int *score, void *virtual_base)
 				{
 					gridArray[i][j] = gridArray[currentRow][j];
 					gridArray[currentRow][j] = BLACK;					
-					VGA_Draw_Tetronimo_Square(j, currentRow, BLACK, PLAYAREAGRID, virtual_base);	
-					VGA_Draw_Tetronimo_Square(j, i, gridArray[i][j], PLAYAREAGRID, virtual_base);	
+					VGA_Draw_Tetromino_Square(j, currentRow, BLACK, PLAYAREAGRID, virtual_base);	
+					VGA_Draw_Tetromino_Square(j, i, gridArray[i][j], PLAYAREAGRID, virtual_base);	
 				}		
 			}
 		}
@@ -544,75 +630,86 @@ void Row_Checker(short ** gridArray, int level, int *score, void *virtual_base)
 }
 
 /****************************************************************************************
- * Shift Tetronimo
+ * Rotate Tetrominoes CW
 ****************************************************************************************/
-void Tetronimo_Shift(short **gridArray, int *xTetronimo, int *yTetronimo, int shiftType, void *virtual_base)
+void VGA_Rotate_Tetromino(int choice, int *currentRotation, short **gridArray, struct Tetromino * movingTetptr, void *virtual_base)
 { 
-	int old_x1, old_x2, old_x3, old_x4, old_y1, old_y2, old_y3, old_y4;
-	int new_x1, new_x2, new_x3, new_x4, new_y1, new_y2, new_y3, new_y4;
-	short color;
+
+}
+
+/****************************************************************************************
+ * Shift Tetromino
+****************************************************************************************/
+void Tetromino_Shift(short **gridArray, struct Tetromino * movingTetptr, int shiftType, void *virtual_base)
+{ 
+	int oldx[4], oldy[4];
+	int newx[4], newy[4];
 	switch(shiftType)
 	{
-		old_x1 = xTetronimo[0];
-		old_x2 = xTetronimo[1];
-		old_x3 = xTetronimo[2];
-		old_x4 = xTetronimo[3];
-		old_y1 = yTetronimo[0];
-		old_y2 = yTetronimo[1];
-		old_y3 = yTetronimo[2];
-		old_y4 = yTetronimo[3];
+		oldx[0] = movingTetptr->x[0];
+		oldx[1] = movingTetptr->x[1];
+		oldx[2] = movingTetptr->x[2];
+		oldx[3] = movingTetptr->x[3];
+		oldy[0] = movingTetptr->y[0];
+		oldy[1] = movingTetptr->y[1];
+		oldy[2] = movingTetptr->y[2];
+		oldy[3] = movingTetptr->y[3];
 		
 		case 1:
 			// Shift Left
-				new_x1 = xTetronimo[0] - 1;
-				new_y1 = yTetronimo[0];
-				new_x2 = xTetronimo[1] - 1;
-				new_y2 = yTetronimo[1];
-				new_x3 = xTetronimo[2] - 1;
-				new_y3 = yTetronimo[2];
-				new_x4 = xTetronimo[3] - 1;
-				new_y4 = yTetronimo[3];	
+				newx[0] = movingTetptr->x[0] - 1;
+				newy[0] = movingTetptr->y[0];
+				newx[1] = movingTetptr->x[1] - 1;
+				newy[1] = movingTetptr->y[1];
+				newx[2] = movingTetptr->x[2] - 1;
+				newy[2] = movingTetptr->y[2];
+				newx[3] = movingTetptr->x[3] - 1;
+				newy[3]= movingTetptr->y[3];	
 			break;
 		case 2:
 			// Shift Right
-				new_x1 = xTetronimo[0] + 1;
-				new_y1 = yTetronimo[0];
-				new_x2 = xTetronimo[1] + 1;
-				new_y2 = yTetronimo[1];
-				new_x3 = xTetronimo[2] + 1;
-				new_y3 = yTetronimo[2];
-				new_x4 = xTetronimo[3] + 1;
-				new_y4 = yTetronimo[3];	
+				newx[0] = movingTetptr->x[0] + 1;
+				newy[0] = movingTetptr->y[0];
+				newx[1] = movingTetptr->x[1] + 1;
+				newy[1] = movingTetptr->y[1];
+				newx[2] = movingTetptr->x[2] + 1;
+				newy[2] = movingTetptr->y[2];
+				newx[3] = movingTetptr->x[3] + 1;
+				newy[3] = movingTetptr->y[3];	
 			break;
 		case 3:
 			// Shift Down
-				new_x1 = xTetronimo[0];
-				new_y1 = yTetronimo[0] + 1;
-				new_x2 = xTetronimo[1];
-				new_y2 = yTetronimo[1] + 1;
-				new_x3 = xTetronimo[2];
-				new_y3 = yTetronimo[2] + 1;
-				new_x4 = xTetronimo[3];
-				new_y4 = yTetronimo[3] + 1;	
+				newx[0] = movingTetptr->x[0];
+				newy[0] = movingTetptr->y[0] + 1;
+				newx[1] = movingTetptr->x[1];
+				newy[1] = movingTetptr->y[1] + 1;
+				newx[2] = movingTetptr->x[2];
+				newy[2] = movingTetptr->y[2] + 1;
+				newx[3] = movingTetptr->x[3];
+				newy[3] = movingTetptr->y[3] + 1;	
 			break;
 		default:
 			break;
 	}
-	if((new_x1 && new_y1 && new_x2 && new_y2 && new_x3 && new_y3 && new_x4 && new_y4) >= 0 && (new_y1 && new_y2 && new_y3 && new_y4 ) < ROWS && (new_x1 && new_x2 && new_x3 && new_x4 ) < COLUMNS)
+	if((newx[0] && newy[0] && newx[1] && newx[1] && newx[2] && newx[2] && newx[3] && newx[3]) >= 0 
+	&& (newy[0] && newy[1] && newy[2] && newx[3] ) < ROWS 
+	&& (newx[0] && newx[1] && newx[2] && newx[3] ) < COLUMNS)
 	{
-		if(gridArray[new_y1][new_x1] == BLACK && gridArray[new_y2][new_x2] == BLACK && gridArray[new_y3][new_x3] == BLACK && gridArray[new_y3][new_x3] == BLACK && gridArray[new_y4][new_x4] == BLACK)
+		if(gridArray[newy[0]][newx[0]] == BLACK 
+		&& gridArray[newy[1]][newx[1]] == BLACK 
+		&& gridArray[newy[2]][newx[2]] == BLACK 
+		&& gridArray[newy[3]][newx[3]] == BLACK)
 		{
-			xTetronimo[0] = new_x1;
-			yTetronimo[0] = new_y1;
-			xTetronimo[1] = new_x2;
-			yTetronimo[1] = new_y2;
-			xTetronimo[2] = new_x3;
-			yTetronimo[2] = new_y3;
-			xTetronimo[3] = new_x4;
-			yTetronimo[3] = new_y4;
-			color = gridArray[old_y1][old_x1];
-			VGA_Delete_Old(old_x1, old_y1, old_x2, old_y2, old_x3, old_y3, old_x4, old_y4, gridArray, virtual_base)
-			VGA_Draw_New(new_x1, new_y1, new_x2, new_y2, new_x3, new_y3, new_x4, new_y4, color, gridArray, virtual_base);
+			movingTetptr->x[0] = newx[0];
+			movingTetptr->y[0] = newy[0];
+			movingTetptr->x[1] = newx[1];
+			movingTetptr->y[1] = newy[1];
+			movingTetptr->x[2] = newx[2];
+			movingTetptr->y[2] = newy[2];
+			movingTetptr->x[3] = newx[3];
+			movingTetptr->y[3] = newy[3];
+			VGA_Delete_Old(oldx[0], oldy[0], oldx[1], oldy[1], oldx[2], oldy[2], oldx[3], oldy[3], gridArray, virtual_base);
+			VGA_Draw_New(newx[0], newy[0], newx[1], newy[1], newx[2], newy[2], newx[3], newy[3], movingTetptr->color, gridArray, virtual_base);
 		}
 	}
 }
@@ -642,28 +739,13 @@ void addRowScore(int rowCount, int level, int *score, void *virtual_base)
 	}
 }
 
-	
-
-/****************************************************************************************
- * Rotate Tetronimoes CW
-****************************************************************************************/
-void VGA_Rotate_Tetronimo(int choice, int *currentRotation, short **gridArray, int *xTetronimo, int *yTetronimo, void *virtual_base)
-{ 
-
-}
-
 /****************************************************************************************
  * Initialize Multiple Arrays
 ****************************************************************************************/
-void initArrays(short **dataArray, int *xArray, int *yArray)
+void initArrays(short **dataArray)
 { 
-	free(dataArray);
-	free(xArray);
-	free(yArray);
-	
 	dataArray = malloc(sizeof(int *) * ROWS);
-	xArray = malloc(sizeof(int *) * 4);
-	yArray = malloc(sizeof(int *) * 4);
+	int i, j;
 
 	for (i = 0; i < ROWS; i++) 
 	{
@@ -675,26 +757,30 @@ void initArrays(short **dataArray, int *xArray, int *yArray)
 	{
 		for (j = 0; j < COLUMNS; j++) 
 		{
-			DataArray[i][j] = 0x0000;
+			dataArray[i][j] = BLACK;
 		}
     }
-	for(i = 0; i < 4; i++)
-	{
-		xArray[i] = 0;
-		yArray[i] = 0;
-	}
 }
 
 int main(int argc,char ** argv) {
 	
     void *virtual_base;
-    int fd, file;
+    int fd, file, i;
 	const char *filename = "/dev/i2c-0";
 	uint8_t id;
 	bool bSuccess;
 	const int mg_per_digi = 4;
 	uint16_t szXYZ[3];
 	int delay = 1000000; // 1 second
+	
+	/* Game Variables */
+	bool changed = false;
+	short **gridData;			// Tetromino Square Grid
+	int lineCount = 0, level = 0, score = 0, randTetrominoChoice = 0;
+	struct Tetromino movingTet;	// Tetromino moving on the screen
+	struct Tetromino nextTet;	// Tetromino to be dropped next
+
+	srand(time(0)); // Start RNG
 	
 	// Dyanmic Box Variables
 	int16_t xg, yg;
@@ -764,16 +850,19 @@ int main(int argc,char ** argv) {
 	// Start Tetris
 	if((c == '1'))
 	{	
-		bool changed = false;
-		short **gridData;
-		int *xTetrominoData, *yTetrominoData, *currentRotation;		
-		int lineCount = 0, level = 0, score = 0, randTetronimoChoice = 0;
-		
-		srand(time(0));
 		VGA_Tetris_Setup(virtual_base);
-		randTetronimoChoice = Random_Number();
-		VGA_Draw_Next_Tetronimo(randTetronimoChoice, NEXTPIECEGRID, virtual_base);
-		initArrays(gridData, xTetrominoData, yTetrominoData);
+		randTetrominoChoice = rand() % 7;
+		initArrays(gridData);
+		VGA_Draw_Next_Tetromino(randTetrominoChoice, NEXTPIECEGRID, &nextTet, virtual_base);
+		getchar();
+		//main grid test
+		for(i = 0; i < 7; i++)
+		{
+			printf("Drawing: %d\n",i);
+			VGA_Draw_Next_Tetromino(i, 0, &movingTet, virtual_base);
+			getchar();
+			//VGA_Delete_Old(movingTet.x[0],movingTet.y[0],movingTet.x[1],movingTet.y[1],movingTet.x[2],movingTet.y[2],movingTet.x[3],movingTety[3], gridData, virtual_base);
+		}
 		
 		usleep(3000);
 		
@@ -817,9 +906,6 @@ int main(int argc,char ** argv) {
 	else if((c != '1'))
 	{
 		exit(0);
-		free(dataArray);
-		free(xArray);
-		free(yArray);
 	}
 	if (!bSuccess)
 	printf("Failed to access accelerometer\r\n");
@@ -835,9 +921,6 @@ int main(int argc,char ** argv) {
 		return( 1 );
 	}
 
-	free(dataArray);
-	free(xArray);
-	free(yArray);
 	close( fd );
 
 	return( 0 );
