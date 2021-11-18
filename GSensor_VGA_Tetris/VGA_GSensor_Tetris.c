@@ -29,6 +29,17 @@ struct Tetromino
 	int rotation;
 };
 
+/****************************************************************************************
+ * Game Struct
+****************************************************************************************/
+struct Game 
+{
+	int score;
+	int level;
+	int lines;
+	int rowCount;
+};
+
 
 /****************************************************************************************
  * GSensor Functions ADXL345
@@ -206,10 +217,10 @@ void LEVEL_Clear(void * virtual_base)
 /****************************************************************************************
  * Draw the Score based on the number from the Score Counter
 ****************************************************************************************/
-void VGA_Draw_Score(int score, void *virtual_base)
+void VGA_Draw_Score(struct Game *data, void *virtual_base)
 { 
 	char tempArray[MAXSCORELENGTH];
-	sprintf(tempArray, "%d", score); 
+	sprintf(tempArray, "%d", data->score); 
 	SCORE_Clear(virtual_base);
 	VGA_text (SCORELEFTOFFSET, SCORETOPOFFSET, tempArray, virtual_base);
 }
@@ -217,10 +228,10 @@ void VGA_Draw_Score(int score, void *virtual_base)
 /****************************************************************************************
  * Draw the Lines based on the number from the Line Counter
 ****************************************************************************************/
-void VGA_Draw_Line(int lines, void *virtual_base)
+void VGA_Draw_Line(struct Game *data, void *virtual_base)
 { 
 	char tempArray[MAXSCORELENGTH];
-	sprintf(tempArray, "%d", lines);
+	sprintf(tempArray, "%d", data->lines);
 	LINE_Clear(virtual_base);
 	VGA_text (LINELEFTOFFSET, LINETOPOFFSET, tempArray, virtual_base);
 }
@@ -228,10 +239,10 @@ void VGA_Draw_Line(int lines, void *virtual_base)
 /****************************************************************************************
  * Draw the Level based on the number from the Level Counter
 ****************************************************************************************/
-void VGA_Draw_Level(int level, void *virtual_base)
+void VGA_Draw_Level(struct Game *data, void *virtual_base)
 { 
 	char tempArray[MAXSCORELENGTH];
-	sprintf(tempArray, "%d", level);
+	sprintf(tempArray, "%d", data->level);
 	LEVEL_Clear(virtual_base);
 	VGA_text (LEVELLEFTOFFSET, LEVELTOPOFFSET, tempArray, virtual_base);
 }
@@ -307,7 +318,7 @@ void VGA_SquareTetrominoBorderDraw(short color, void *virtual_base)
 /****************************************************************************************
  * Initial Setup
 ****************************************************************************************/
-void VGA_Tetris_Setup(void *virtual_base)
+void VGA_Tetris_Setup(struct Game *data, void *virtual_base)
 { 
 	VGA_Clear(virtual_base);	
 	
@@ -321,9 +332,14 @@ void VGA_Tetris_Setup(void *virtual_base)
 	VGA_text (SCORETEXTOFFSET, LEVELTOPOFFSET, level_text, virtual_base);
 	VGA_text (SCORETEXTOFFSET, NEXTPIECETOPOFFSET, next_text, virtual_base);
 	
-	VGA_Draw_Score(0, virtual_base);
-	VGA_Draw_Line(0, virtual_base);
-	VGA_Draw_Level(0, virtual_base);
+	data->score = 0;
+	data->lines = 0;
+	data->level = 0;
+	data->rowCount = 0;
+	
+	VGA_Draw_Score(data, virtual_base);
+	VGA_Draw_Line(data, virtual_base);
+	VGA_Draw_Level(data, virtual_base);
 	VGA_SquareTetrominoBorderDraw(WHITE, virtual_base);	//draw border
 }
 
@@ -563,7 +579,7 @@ void VGA_Draw_New(int x1_new, int y1_new, int x2_new, int y2_new, int x3_new, in
 /****************************************************************************************
  * Check Each Row and Shift
 ****************************************************************************************/
-void Row_Checker(short ** gridArray, int level, int *score, void *virtual_base)
+void Row_Checker(short ** gridArray, struct Game *data, void *virtual_base)
 { 
 	int rows[ROWS];
 	int currentRow, highestRow, shiftRow, i, j,  rowCount = 0;
@@ -625,7 +641,7 @@ void Row_Checker(short ** gridArray, int level, int *score, void *virtual_base)
 	}
 	if(rowCount > 0)
 	{
-		//addRowScore(rowCount, level, &score, &virtual_base);
+		//addRowScore(data, rowCount, &virtual_base);
 	}
 }
 
@@ -717,22 +733,21 @@ void Tetromino_Shift(short **gridArray, struct Tetromino * movingTetptr, int shi
 /****************************************************************************************
  * Add Score to Total Points
 ****************************************************************************************/
-void addRowScore(int rowCount, int level, int *score, void *virtual_base)
+void addRowScore(struct Game data, int rowCount, void *virtual_base)
 {
-	int temp = *score;
 	switch(rowCount)
 	{
 		case 1:
-			*score = temp + (40 * (level + 1));
+			data->score = data->score + (40 * (data->level + 1));
 			break;
 		case 2:
-			*score = temp + (100 * (level + 1));
+			data->score = data->score + (100 * (data->level + 1));
 			break;
 		case 3:
-			*score = temp + (300 * (level + 1));
+			data->score = data->score + (300 * (data->level + 1));
 			break;
 		case 4:
-			*score = temp + (1200 * (level + 1));
+			data->score = data->score + (1200 * (data->level + 1));
 			break;
 		default:
 			break;	
@@ -779,7 +794,7 @@ int main(int argc,char ** argv) {
 	int lineCount = 0, level = 0, score = 0, randTetrominoChoice = 0;
 	struct Tetromino movingTet;	// Tetromino moving on the screen
 	struct Tetromino nextTet;	// Tetromino to be dropped next
-
+	struct Game gameData;	// Game Data
 	srand(time(0)); // Start RNG
 	
 	// Dyanmic Box Variables
@@ -850,7 +865,7 @@ int main(int argc,char ** argv) {
 	// Start Tetris
 	if((c == '1'))
 	{	
-		VGA_Tetris_Setup(virtual_base);
+		VGA_Tetris_Setup(&gameData, virtual_base);
 		randTetrominoChoice = rand() % 7;
 		initArrays(gridData);
 		VGA_Draw_Next_Tetromino(randTetrominoChoice, NEXTPIECEGRID, &nextTet, virtual_base);
