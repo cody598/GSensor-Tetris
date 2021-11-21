@@ -271,7 +271,7 @@ void VGA_Draw_Tetromino_Square(int xgrid, int ygrid, short color, int choice, vo
 
 	
 	VGA_box(xPixelTopLeftOuter, yPixelTopLeftOuter, xPixelTopLeftOuter + XBOTTOMRIGHTOUTEROFFSET, yPixelTopLeftOuter + YBOTTOMRIGHTOUTEROFFSET, WHITE, virtual_base); 
-	VGA_box(xPixelTopLeftInner, yPixelTopLeftInner, xPixelTopLeftInner + XBOTTOMRIGHTINNEROFFSET, yPixelTopLeftInner + YBOTTOMRIGHTINNEROFFSET, CYAN, virtual_base); // Error With Color	
+	VGA_box(xPixelTopLeftInner, yPixelTopLeftInner, xPixelTopLeftInner + XBOTTOMRIGHTINNEROFFSET, yPixelTopLeftInner + YBOTTOMRIGHTINNEROFFSET, color, virtual_base); 
 }
 
 /****************************************************************************************
@@ -759,21 +759,46 @@ void addRowScore(struct Game data, int rowCount, void *virtual_base)
 ****************************************************************************************/
 void initArrays(short **dataArray)
 { 
-	dataArray = malloc(sizeof(int *) * ROWS);
 	int i, j;
 
+    // dynamically create an array of pointers of size `ROWS`
+	dataArray = (short**)malloc(sizeof(short *) * ROWS);
+	if(dataArray == NULL)
+	{
+		printf("%s", "Out of memory");
+        exit(0);
+	
+	}
+	
+	// dynamically allocate memory of size `COLUMNS for each row	
 	for (i = 0; i < ROWS; i++) 
 	{
 		// malloc space for row i's M column elements
-		dataArray[i] = malloc(sizeof(int) * COLUMNS);
+		dataArray[i] = (short *)malloc(sizeof(short) * COLUMNS);
+        if (dataArray[i] == NULL)
+        {
+			printf("%s", "Out of memory");
+			exit(0);
+        }
 	}
 	
+	// assign values to the allocated memory
 	for (i = 0; i < ROWS; i++) 
 	{
 		for (j = 0; j < COLUMNS; j++) 
 		{
 			dataArray[i][j] = BLACK;
 		}
+    }
+	
+    // print the 2D array
+    for (int i = 0; i < ROWS; r++)
+    {
+        for (int j = 0; j < COLUMNS; j++) {
+            printf("%hu ", dataArray[i][j]);   
+        }
+ 
+        printf("\n");
     }
 }
 
