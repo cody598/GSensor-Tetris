@@ -963,6 +963,14 @@ int main(int argc,char ** argv) {
 
 	close( fd );
 
+	// deallocate memory
+    for (int i = 0; i < ROWS; i++) {
+        free(dataArray[i]);
+    }
+    free(dataArray);
+ 
+    return 0;
+}
 	return( 0 );
 
 }
