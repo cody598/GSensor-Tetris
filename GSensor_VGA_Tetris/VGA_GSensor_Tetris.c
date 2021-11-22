@@ -27,6 +27,7 @@ struct Tetromino
 	int x[4];
 	int y[4];
 	int rotation;
+	int tetrominoNumber;
 };
 
 /****************************************************************************************
@@ -371,9 +372,11 @@ void VGA_Draw_Next_Tetromino(int tetrominoChoice, int gridChoice, struct Tetromi
 		tetr->y[i] = 0;
 	}
 	tetr->rotation = 0;
+	tetr->tetrominoNumber- = tetrominoChoice;
 
 	//add random color selection!
 	tetr->color = 0x249B;
+	
 
 
 	switch(tetrominoChoice)
@@ -648,12 +651,12 @@ void Row_Checker(short ** gridArray, struct Game *data, void *virtual_base)
 /****************************************************************************************
  * Rotate Tetronimoes CW
 ****************************************************************************************/
-void VGA_Rotate_Tetronimo(int choice, short **gridArray, struct Tetromino * tetr, void *virtual_base)
+void VGA_Rotate_Tetronimo(short **gridArray, struct Tetromino * tetr, void *virtual_base)
 { 
 	int oldx[4], oldy[4];
 	int newx[4], newy[4];
 	short color;
-	int i, newRotation;
+	int i, newRotation, tetrominoChoice;
 	bool change = true;
 	
 	oldx[0] = tetr->x[0];
@@ -665,8 +668,10 @@ void VGA_Rotate_Tetronimo(int choice, short **gridArray, struct Tetromino * tetr
 	oldy[2] = tetr->y[2];
 	oldy[3] = tetr->y[3];
 	color = tetr->color;
-	newRotation =tetr->rotation;
-	switch(choice)
+	newRotation = tetr->rotation;
+	tetrominoChoice = tetr->tetrominoNumber;
+	
+	switch(tetrominoChoice)
 	{
 		case 1:
 			// Rotate I Tetronimo
@@ -721,7 +726,7 @@ void VGA_Rotate_Tetronimo(int choice, short **gridArray, struct Tetromino * tetr
 						newy[3] = oldy[3];	
 					break;
 				case 2:
-					// Rotate from 2 to 1
+					// Rotate from 2 to 3
 						newx[0] = oldx[0] + 1;
 						newy[0] = oldy[0] + 1;
 						newx[1] = oldx[1];
@@ -757,11 +762,257 @@ void VGA_Rotate_Tetronimo(int choice, short **gridArray, struct Tetromino * tetr
 					break;
 				if(newRotation == 4)
 				{
-					(newRotation)++;
+					newRotation = 1;
 				}
 				else
 				{
-					(newRotation)--;
+					(newRotation)++;
+				}	
+			}
+		
+		case 3:
+			// Rotate L Tetronimo
+			switch(tetr->rotation)
+			{
+				case 1:
+					// Rotate from 1 to 2
+						newx[0] = oldx[0] - 1;
+						newy[0] = oldy[0] + 1;
+						newx[1] = oldx[1];
+						newy[1] = oldy[1];
+						newx[2] = oldx[2] + 1;
+						newy[2] = oldy[2] - 1;
+						newx[3] = oldx[3];
+						newy[3] = oldy[3] - 2;	
+					break;
+				case 2:
+					// Rotate from 2 to 3
+						newx[0] = oldx[0] - 1;
+						newy[0] = oldy[0] - 1;
+						newx[1] = oldx[1];
+						newy[1] = oldy[1];
+						newx[2] = oldx[2] + 1;
+						newy[2] = oldy[2] + 1;
+						newx[3] = oldx[3] + 2;
+						newy[3] = oldy[3];
+					break;
+				case 3:
+					// Rotate from 3 to 4
+						newx[0] = oldx[0] - 1;
+						newy[0] = oldy[0] + 1;
+						newx[1] = oldx[1];
+						newy[1] = oldy[1];
+						newx[2] = oldx[2] - 1;
+						newy[2] = oldy[2] + 1;
+						newx[3] = oldx[3];
+						newy[3] = oldy[3] + 2;				
+					break;
+				case 4:
+					// Rotate from 4 to 1
+						newx[0] = oldx[0] + 1;
+						newy[0] = oldy[0] + 1;
+						newx[1] = oldx[1];
+						newy[1] = oldy[1];
+						newx[2] = oldx[2] - 1;
+						newy[2] = oldy[2] - 1;
+						newx[3] = oldx[3] - 2;
+						newy[3] = oldy[3];
+					break;
+				default:
+					break;
+				if(newRotation == 4)
+				{
+					newRotation = 1;
+				}
+				else
+				{
+					(newRotation)++;
+				}	
+			}
+		case 4:
+			// Rotate 0 Tetronimo
+			switch(tetr->rotation)
+			{
+				case 1:
+					break;
+				default:
+					break;	
+			}
+		case 5:
+			// Rotate S Tetronimo
+			switch(tetr->rotation)
+			{
+				case 1:
+					// Rotate from 1 to 2
+						newx[0] = oldx[0] - 1;
+						newy[0] = oldy[0] + 1;
+						newx[1] = oldx[1];
+						newy[1] = oldy[1];
+						newx[2] = oldx[2] - 1;
+						newy[2] = oldy[2] - 1;
+						newx[3] = oldx[3];
+						newy[3] = oldy[3] - 2;	
+					break;
+				case 2:
+					// Rotate from 2 to 3
+						newx[0] = oldx[0] - 1;
+						newy[0] = oldy[0];
+						newx[1] = oldx[1];
+						newy[1] = oldy[1] + 1;
+						newx[2] = oldx[2] + 1;
+						newy[2] = oldy[2];
+						newx[3] = oldx[3] + 2;
+						newy[3] = oldy[3] + 1;
+					break;
+				case 3:
+					// Rotate from 3 to 4
+						newx[0] = oldx[0];
+						newy[0] = oldy[0] - 2;
+						newx[1] = oldx[1] - 1;
+						newy[1] = oldy[1] - 1;
+						newx[2] = oldx[2];
+						newy[2] = oldy[2];
+						newx[3] = oldx[3] - 1;
+						newy[3] = oldy[3] + 1;				
+					break;
+				case 4:
+					// Rotate from 4 to 1
+						newx[0] = oldx[0] + 2;
+						newy[0] = oldy[0] + 1;
+						newx[1] = oldx[1] + 1;
+						newy[1] = oldy[1];
+						newx[2] = oldx[2];
+						newy[2] = oldy[2] - 1;
+						newx[3] = oldx[3] - 1;
+						newy[3] = oldy[3];
+					break;
+				default:
+					break;
+				if(newRotation == 4)
+				{
+					newRotation = 1;
+				}
+				else
+				{
+					(newRotation)++;
+				}	
+			}
+		case 6:
+			// Rotate T Tetronimo
+			switch(tetr->rotation)
+			{
+				case 1:
+					// Rotate from 1 to 2
+						newx[0] = oldx[0] + 1;
+						newy[0] = oldy[0] - 1;
+						newx[1] = oldx[1];
+						newy[1] = oldy[1];
+						newx[2] = oldx[2] - 1;
+						newy[2] = oldy[2] + 1;
+						newx[3] = oldx[3] - 1;
+						newy[3] = oldy[3] - 1;	
+					break;
+				case 2:
+					// Rotate from 2 to 3
+						newx[0] = oldx[0] + 1;
+						newy[0] = oldy[0] + 1;
+						newx[1] = oldx[1];
+						newy[1] = oldy[1];
+						newx[2] = oldx[2] - 1;
+						newy[2] = oldy[2] - 1;
+						newx[3] = oldx[3] + 1;
+						newy[3] = oldy[3] - 1;
+					break;
+				case 3:
+					// Rotate from 3 to 4
+						newx[0] = oldx[0] - 1;
+						newy[0] = oldy[0] + 1;
+						newx[1] = oldx[1];
+						newy[1] = oldy[1];
+						newx[2] = oldx[2] + 1;
+						newy[2] = oldy[2] - 1;
+						newx[3] = oldx[3] + 1;
+						newy[3] = oldy[3] + 1;				
+					break;
+				case 4:
+					// Rotate from 4 to 1
+						newx[0] = oldx[0] - 1;
+						newy[0] = oldy[0] - 1;
+						newx[1] = oldx[1];
+						newy[1] = oldy[1];
+						newx[2] = oldx[2] + 1;
+						newy[2] = oldy[2] + 1;
+						newx[3] = oldx[3] - 1;
+						newy[3] = oldy[3] + 1;
+					break;
+				default:
+					break;
+				if(newRotation == 4)
+				{
+					newRotation = 1;
+				}
+				else
+				{
+					(newRotation)++;
+				}	
+			}
+		case 7:
+			// Rotate Z Tetronimo
+			switch(tetr->rotation)
+			{
+				case 1:
+					// Rotate from 1 to 2
+						newx[0] = oldx[0] + 1;
+						newy[0] = oldy[0] - 1;
+						newx[1] = oldx[1];
+						newy[1] = oldy[1];
+						newx[2] = oldx[2] - 1;
+						newy[2] = oldy[2] - 1;
+						newx[3] = oldx[3] - 2;
+						newy[3] = oldy[3];	
+					break;
+				case 2:
+					// Rotate from 2 to 3
+						newx[0] = oldx[0] + 1;
+						newy[0] = oldy[0] + 2;
+						newx[1] = oldx[1];
+						newy[1] = oldy[1];
+						newx[2] = oldx[2] + 1;
+						newy[2] = oldy[2];
+						newx[3] = oldx[3];
+						newy[3] = oldy[3] + 1;
+					break;
+				case 3:
+					// Rotate from 3 to 4
+						newx[0] = oldx[0] - 2;
+						newy[0] = oldy[0];
+						newx[1] = oldx[1] - 1;
+						newy[1] = oldy[1] - 1;
+						newx[2] = oldx[2];
+						newy[2] = oldy[2];
+						newx[3] = oldx[3] + 1;
+						newy[3] = oldy[3] - 1;				
+					break;
+				case 4:
+					// Rotate from 4 to 1
+						newx[0] = oldx[0];
+						newy[0] = oldy[0] - 1;
+						newx[1] = oldx[1] - 1;
+						newy[1] = oldy[1];
+						newx[2] = oldx[2];
+						newy[2] = oldy[2] + 1;
+						newx[3] = oldx[3] + 1;
+						newy[3] = oldy[3] + 2;
+					break;
+				default:
+					break;
+				if(newRotation == 4)
+				{
+					newRotation = 1;
+				}
+				else
+				{
+					(newRotation)++;
 				}	
 			}
 		default:
