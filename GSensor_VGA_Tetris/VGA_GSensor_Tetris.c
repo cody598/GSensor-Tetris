@@ -646,20 +646,173 @@ void Row_Checker(short ** gridArray, struct Game *data, void *virtual_base)
 }
 
 /****************************************************************************************
- * Rotate Tetrominoes CW
+ * Rotate Tetronimoes CW
 ****************************************************************************************/
-void VGA_Rotate_Tetromino(int choice, int *currentRotation, short **gridArray, struct Tetromino * movingTetptr, void *virtual_base)
+void VGA_Rotate_Tetronimo(int choice, short **gridArray, struct Tetromino * tetr, void *virtual_base)
 { 
+	int oldx[4], oldy[4];
+	int newx[4], newy[4];
+	short color;
+	int i, newRotation;
+	bool change = true;
+	
+	oldx[0] = tetr->x[0];
+	oldx[1] = tetr->x[1];
+	oldx[2] = tetr->x[2];
+	oldx[3] = tetr->x[3];
+	oldy[0] = tetr->y[0];
+	oldy[1] = tetr->y[1];
+	oldy[2] = tetr->y[2];
+	oldy[3] = tetr->y[3];
+	color = tetr->color;
+	newRotation =tetr->rotation;
+	switch(choice)
+	{
+		case 1:
+			// Rotate I Tetronimo
+			switch(tetr->rotation)
+			{
+				case 1:
+					// Rotate from 1 to 2
+						newx[0] = oldx[0] + 1;
+						newy[0] = oldy[0] + 1;
+						newx[1] = oldx[1];
+						newy[1] = oldy[1];
+						newx[2] = oldx[2] - 1;
+						newy[2] = oldy[2] -1;
+						newx[3] = oldx[3] - 2;
+						newy[3] = oldy[3] -2;	
+					break;
+				case 2:
+					// Rotate from 2 to 1
+						newx[0] = oldx[0] -1;
+						newy[0] = oldy[0] - 1;
+						newx[1] = oldx[1];
+						newy[1] = oldy[1];
+						newx[2] = oldx[2] + 1;
+						newy[2] = oldy[2] + 1;
+						newx[3] = oldx[3] + 2;
+						newy[3] = oldy[3] + 2;
+					break;							
+				default:
+					break;
+				if(newRotation == 1)
+				{
+					(newRotation)++;
+				}
+				else
+				{
+					(newRotation)--;
+				}	
+			}
+		case 2:
+			// Rotate J Tetronimo
+			switch(tetr->rotation)
+			{
+				case 1:
+					// Rotate from 1 to 2
+						newx[0] = oldx[0] + 1;
+						newy[0] = oldy[0] - 1;
+						newx[1] = oldx[1];
+						newy[1] = oldy[1];
+						newx[2] = oldx[2] - 1;
+						newy[2] = oldy[2] + 1;
+						newx[3] = oldx[3] - 2;
+						newy[3] = oldy[3];	
+					break;
+				case 2:
+					// Rotate from 2 to 1
+						newx[0] = oldx[0] + 1;
+						newy[0] = oldy[0] + 1;
+						newx[1] = oldx[1];
+						newy[1] = oldy[1];
+						newx[2] = oldx[2] - 1;
+						newy[2] = oldy[2] - 1;
+						newx[3] = oldx[3];
+						newy[3] = oldy[3] - 2;
+					break;
+				case 3:
+					// Rotate from 3 to 4
+						newx[0] = oldx[0] - 1;
+						newy[0] = oldy[0] + 1;
+						newx[1] = oldx[1];
+						newy[1] = oldy[1];
+						newx[2] = oldx[2] + 1;
+						newy[2] = oldy[2] - 1;
+						newx[3] = oldx[3] + 2;
+						newy[3] = oldy[3];				
+					break;
+				case 4:
+					// Rotate from 4 to 1
+						newx[0] = oldx[0] - 1;
+						newy[0] = oldy[0] - 1;
+						newx[1] = oldx[1];
+						newy[1] = oldy[1];
+						newx[2] = oldx[2] + 1;
+						newy[2] = oldy[2] + 1;
+						newx[3] = oldx[3];
+						newy[3] = oldy[3] + 2;
+					break;
+				default:
+					break;
+				if(newRotation == 4)
+				{
+					(newRotation)++;
+				}
+				else
+				{
+					(newRotation)--;
+				}	
+			}
+		default:
+			break;
+	}
 
+	// Bound checking for the rotation
+	for(i = 0; i < 4; i++)
+	{
+		//Check if inside grid bounds.
+		if(newx[i] > 9  || newx[i] < 0 
+		|| newy[i] > 14 || newy[i] < 0)
+		{
+			change = false;
+			break;
+		}
+
+		// Check if space is not taken.
+		if(gridArray[newy[i]][newx[i]] != BLACK)
+		{
+			change = false;
+			break;
+		}
+	}
+
+	// Apply changes if the rotation is valid.
+	if(change)
+	{
+		tetr->rotation = newRotation;
+		for(int i = 0; i < 4; i++)
+		{
+			tetr->x[i] = newx[i];
+			tetr->y[i] = newy[i];			
+		}
+		VGA_Delete_Old(oldx[0], oldy[0], oldx[1], oldy[1], oldx[2], oldy[2], oldx[3], oldy[3], gridArray, virtual_base);
+		VGA_Draw_New(newx[0], newy[0], newx[1], newy[1], newx[2], newy[2], newx[3], newy[3], tetr->color, gridArray, virtual_base);
+	}
+	else printf("DEBUG: No rotation\n");	//DEBUG
+			
 }
 
 /****************************************************************************************
  * Shift Tetromino
 ****************************************************************************************/
-void Tetromino_Shift(short **gridArray, struct Tetromino * movingTetptr, int shiftType, void *virtual_base)
+bool Tetromino_Shift(short **gridArray, struct Tetromino * movingTetptr, int shiftType, void *virtual_base)
 { 
 	int oldx[4], oldy[4];
 	int newx[4], newy[4];
+	bool change = true;
+	bool set = false;
+
 	switch(shiftType)
 	{
 		oldx[0] = movingTetptr->x[0];
@@ -707,27 +860,49 @@ void Tetromino_Shift(short **gridArray, struct Tetromino * movingTetptr, int shi
 		default:
 			break;
 	}
-	if((newx[0] && newy[0] && newx[1] && newx[1] && newx[2] && newx[2] && newx[3] && newx[3]) >= 0 
-	&& (newy[0] && newy[1] && newy[2] && newx[3] ) < ROWS 
-	&& (newx[0] && newx[1] && newx[2] && newx[3] ) < COLUMNS)
+
+	// Bound checking forthe translation of the Tetromino
+	for(i = 0; i < 4; i++)
 	{
-		if(gridArray[newy[0]][newx[0]] == BLACK 
-		&& gridArray[newy[1]][newx[1]] == BLACK 
-		&& gridArray[newy[2]][newx[2]] == BLACK 
-		&& gridArray[newy[3]][newx[3]] == BLACK)
+		//Check if inside grid bounds.
+		if(newx[i] > 9  || newx[i] < 0 || newy[i] < 0)
 		{
-			movingTetptr->x[0] = newx[0];
-			movingTetptr->y[0] = newy[0];
-			movingTetptr->x[1] = newx[1];
-			movingTetptr->y[1] = newy[1];
-			movingTetptr->x[2] = newx[2];
-			movingTetptr->y[2] = newy[2];
-			movingTetptr->x[3] = newx[3];
-			movingTetptr->y[3] = newy[3];
-			VGA_Delete_Old(oldx[0], oldy[0], oldx[1], oldy[1], oldx[2], oldy[2], oldx[3], oldy[3], gridArray, virtual_base);
-			VGA_Draw_New(newx[0], newy[0], newx[1], newy[1], newx[2], newy[2], newx[3], newy[3], movingTetptr->color, gridArray, virtual_base);
+			change = false;
+			break;
+		}
+
+		// Check if space is taken.
+		if(gridArray[newy[i]][newx[i]] != BLACK)
+		{
+			change = false;
+			break;
 		}
 	}
+
+	// Apply changes if the rotation is valid.
+	if(change)
+	{
+		for(int i = 0; i < 4; i++)
+		{
+			tetr->x[i] = newx[i];
+			tetr->y[i] = newy[i];
+
+			// Check if the Tetromino hit the "ground".
+			if(newy[i] + 1 <= 14 
+			&& newy[i] + 1 == 14
+			|| gridArray[newy[i] + 1][newx[i]] != BLACK)
+			{
+				set = true;
+			}		
+		}
+		VGA_Delete_Old(oldx[0], oldy[0], oldx[1], oldy[1], oldx[2], oldy[2], oldx[3], oldy[3], gridArray, virtual_base);
+		VGA_Draw_New(newx[0], newy[0], newx[1], newy[1], newx[2], newy[2], newx[3], newy[3], tetr->color, gridArray, virtual_base);
+	}
+	else 
+	{
+		printf("DEBUG: No shifting\n");	//DEBUG
+	}
+	return set;
 }
 
 /****************************************************************************************
@@ -767,7 +942,6 @@ void initArrays(short **dataArray)
 	{
 		printf("%s", "Out of memory");
         exit(0);
-	
 	}
 	
 	// dynamically allocate memory of size `COLUMNS for each row	
