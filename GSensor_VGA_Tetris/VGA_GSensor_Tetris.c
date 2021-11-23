@@ -371,13 +371,8 @@ void VGA_Draw_Next_Tetromino(int tetrominoChoice, int gridChoice, struct Tetromi
 		tetr->x[i] = 0;
 		tetr->y[i] = 0;
 	}
-	tetr->rotation = 0;
+	tetr->rotation = 1;
 	tetr->tetrominoNumber = tetrominoChoice;
-
-	//add random color selection!
-	tetr->color = 0x249B;
-	
-
 
 	switch(tetrominoChoice)
 	{
@@ -659,7 +654,7 @@ void VGA_Rotate_Tetronimo(short **gridArray, struct Tetromino * tetr, void *virt
 	int oldx[4], oldy[4];
 	int newx[4], newy[4];
 	int i, newRotation, tetrominoChoice;
-	bool change = true;
+	bool change = true, set = false;
 	
 	oldx[0] = tetr->x[0];
 	oldx[1] = tetr->x[1];
@@ -1020,38 +1015,51 @@ void VGA_Rotate_Tetronimo(short **gridArray, struct Tetromino * tetr, void *virt
 			break;
 	}
 
-	// Bound checking for the rotation
 	for(i = 0; i < 4; i++)
 	{
 		//Check if inside grid bounds.
 		if(newx[i] > 9  || newx[i] < 0 
-		|| newy[i] > 14 || newy[i] < 0)
+		|| newy[i] < 0)
 		{
 			change = false;
 			break;
 		}
-
-		// Check if space is not taken.
-		if(gridArray[newy[i]][newx[i]] != BLACK)
+		// Check if space is taken.
+		else if(gridArray[newy[i]][newx[i]] != BLACK)
 		{
 			change = false;
-			break;
 		}
+			
 	}
-
+	
+	printf("Apply changes\n");
 	// Apply changes if the rotation is valid.
 	if(change)
-	{
-		tetr->rotation = newRotation;
+	{	
+		//Delete old tetromino
+		for(i = 0; i < 4; i++)
+			VGA_Draw_Tetromino_Square(movingTetptr->x[i], movingTetptr->y[i], 0, MAINGRID, virtual_base);
+
 		for(i = 0; i < 4; i++)
 		{
-			VGA_Draw_Tetromino_Square(tetr->x[i], tetr->y[i], 0, MAINGRID, virtual_base);
-			tetr->x[i] = newx[i];
-			tetr->y[i] = newy[i];
-			VGA_Draw_Tetromino_Square(tetr->x[i], tetr->y[i], tetr->color, MAINGRID, virtual_base);		
+			movingTetptr->x[i] = newx[i];
+			movingTetptr->y[i] = newy[i];
+			VGA_Draw_Tetromino_Square(movingTetptr->x[i], movingTetptr->y[i], movingTetptr->color, MAINGRID, virtual_base);
+
+			//Check if the Tetromino hit the "ground".
+			if(newy[i] == 14 || gridArray[newy[i] + 1][newx[i]] != BLACK)
+			{
+				set = true;
+				printf("Piece Set After Rotation\n");
+			}		
 		}
 	}
-	else printf("DEBUG: No rotation\n");	//DEBUG
+	else 
+	{
+		printf("DEBUG: No Rotation\n");	//DEBUG
+	}
+	return set;
+}
 			
 }
 
@@ -1062,8 +1070,7 @@ bool Tetromino_Shift(short gridArray[ROWS][COLUMNS], struct Tetromino * movingTe
 { 
 	int newx[4], newy[4];
 	int i, j;
-	bool change = true;
-	bool set = false;
+	bool change = true, set = false;
 
 	//////////////////////////DEBUG	
 	printf("OLD\n");
@@ -1136,7 +1143,7 @@ bool Tetromino_Shift(short gridArray[ROWS][COLUMNS], struct Tetromino * movingTe
 	// Apply changes if the rotation is valid.
 	if(change)
 	{	
-		//Deleteold tetromino
+		//Delete old tetromino
 		for(i = 0; i < 4; i++)
 			VGA_Draw_Tetromino_Square(movingTetptr->x[i], movingTetptr->y[i], 0, MAINGRID, virtual_base);
 
@@ -1147,7 +1154,7 @@ bool Tetromino_Shift(short gridArray[ROWS][COLUMNS], struct Tetromino * movingTe
 			VGA_Draw_Tetromino_Square(movingTetptr->x[i], movingTetptr->y[i], movingTetptr->color, MAINGRID, virtual_base);
 
 			//Check if the Tetromino hit the "ground".
-			if(newy[i] == 14 || gridArray[newy[i] + 1][newx[i]] != 0x0000)
+			if(newy[i] == 14 || gridArray[newy[i] + 1][newx[i]] != BLACK)
 			{
 				set = true;
 				printf("Piece Set\n");
