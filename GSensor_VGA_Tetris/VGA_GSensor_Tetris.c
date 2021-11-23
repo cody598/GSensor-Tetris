@@ -649,7 +649,7 @@ void Row_Checker(short ** gridArray, struct Game *data, void *virtual_base)
 /****************************************************************************************
  * Rotate Tetronimoes CW
 ****************************************************************************************/
-void VGA_Rotate_Tetronimo(short **gridArray, struct Tetromino * tetr, void *virtual_base)
+bool VGA_Rotate_Tetronimo(short gridArray[ROWS][COLUMNS], struct Tetromino * tetr, void *virtual_base)
 { 
 	int oldx[4], oldy[4];
 	int newx[4], newy[4];
