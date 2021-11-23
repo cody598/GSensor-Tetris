@@ -254,7 +254,9 @@ void VGA_Draw_Level(struct Game *data, void *virtual_base)
 void VGA_Draw_Tetromino_Square(int xgrid, int ygrid, short color, int choice, void *virtual_base)
 // Need GRID ARRAY
 {
-	int xPixelTopLeftOuter, yPixelTopLeftOuter, xPixelBottomRightOuter, yPixelBottomRightOuter, xPixelTopLeftInner, yPixelTopLeftInner, xPixelBottomRightInner, yPixelBottomRightInner;
+	
+	int xPixelTopLeftOuter, yPixelTopLeftOuter, xPixelTopLeftInner, yPixelTopLeftInner;
+	//int xPixelBottomRightOuter, yPixelBottomRightOuter, xPixelBottomRightInner, yPixelBottomRightInner
 	if(xgrid < 10 && ygrid < 15 && choice == 0)
 	{
 		xPixelTopLeftOuter = PLAYLEFTOFFSET +(xgrid * SQUAREWIDTH);
@@ -270,19 +272,17 @@ void VGA_Draw_Tetromino_Square(int xgrid, int ygrid, short color, int choice, vo
 		yPixelTopLeftInner = yPixelTopLeftOuter + 4;
 	}
 
-	
-	VGA_box(xPixelTopLeftOuter, yPixelTopLeftOuter, xPixelTopLeftOuter + XBOTTOMRIGHTOUTEROFFSET, yPixelTopLeftOuter + YBOTTOMRIGHTOUTEROFFSET, WHITE, virtual_base); 
-	VGA_box(xPixelTopLeftInner, yPixelTopLeftInner, xPixelTopLeftInner + XBOTTOMRIGHTINNEROFFSET, yPixelTopLeftInner + YBOTTOMRIGHTINNEROFFSET, color, virtual_base); 
+	if(color == 0)
+	{
+		VGA_box(xPixelTopLeftOuter, yPixelTopLeftOuter, xPixelTopLeftOuter + XBOTTOMRIGHTOUTEROFFSET, yPixelTopLeftOuter + YBOTTOMRIGHTOUTEROFFSET, 0, virtual_base);
+	}
+	else
+	{
+		printf("NEW: X:%d,Y:%d\n", xgrid, ygrid);
+		VGA_box(xPixelTopLeftOuter, yPixelTopLeftOuter, xPixelTopLeftOuter + XBOTTOMRIGHTOUTEROFFSET, yPixelTopLeftOuter + YBOTTOMRIGHTOUTEROFFSET, WHITE, virtual_base); 
+		VGA_box(xPixelTopLeftInner, yPixelTopLeftInner, xPixelTopLeftInner + XBOTTOMRIGHTINNEROFFSET, yPixelTopLeftInner + YBOTTOMRIGHTINNEROFFSET, color, virtual_base); 
+	}
 }
-
-/****************************************************************************************
- * State Machine and Game Logic
-****************************************************************************************/
-void State_Machine_Check( void *virtual_base)
-{
-
-}
-
 
 
 /****************************************************************************************
@@ -372,7 +372,7 @@ void VGA_Draw_Next_Tetromino(int tetrominoChoice, int gridChoice, struct Tetromi
 		tetr->y[i] = 0;
 	}
 	tetr->rotation = 0;
-	tetr->tetrominoNumber- = tetrominoChoice;
+	tetr->tetrominoNumber = tetrominoChoice;
 
 	//add random color selection!
 	tetr->color = 0x249B;
@@ -392,7 +392,7 @@ void VGA_Draw_Next_Tetromino(int tetrominoChoice, int gridChoice, struct Tetromi
 					tetr->x[i-3] = i;
 					tetr->y[i-3] = 0;
 					tetr->color = color;
-					VGA_Draw_Tetromino_Square(i,0, color, gridChoice, virtual_base);
+					VGA_Draw_Tetromino_Square(tetr->x[i-3],tetr->y[i-3], color, gridChoice, virtual_base);
 					
 				}
 			}
@@ -401,8 +401,6 @@ void VGA_Draw_Next_Tetromino(int tetrominoChoice, int gridChoice, struct Tetromi
 
 				for(i = 0; i < 4; i++)
 				{
-					//tetr->x[i];
-					//->y[2];
 					VGA_Draw_Tetromino_Square(i, 2, color, gridChoice, virtual_base);
 				}
 			}
@@ -412,11 +410,17 @@ void VGA_Draw_Next_Tetromino(int tetrominoChoice, int gridChoice, struct Tetromi
 			color = BLUE;
 			if(gridChoice == 0)
 			{
-				VGA_Draw_Tetromino_Square(5, 1, color, gridChoice, virtual_base);
+				tetr->x[0] = 5;
+				tetr->y[0] = 1;
+				VGA_Draw_Tetromino_Square(tetr->x[0], tetr->y[0], color, gridChoice, virtual_base);
 				for(i = 3; i < 6; i++)
 				{
-					VGA_Draw_Tetromino_Square(i, 0, color, gridChoice, virtual_base);
+					tetr->x[i-2] = i;
+					tetr->y[i-2] = 0;
+					VGA_Draw_Tetromino_Square(tetr->x[i-2], tetr->y[i-2], color, gridChoice, virtual_base);
+
 				}
+				tetr->color = color;
 			}
 			else if(gridChoice == 1)
 			{
@@ -431,12 +435,17 @@ void VGA_Draw_Next_Tetromino(int tetrominoChoice, int gridChoice, struct Tetromi
 			// Draw L Tetromino
 			color = ORANGE;
 			if(gridChoice == 0)
-			{
-				for(i = 3; i < 6; i++)
-				{
-					VGA_Draw_Tetromino_Square(i, 0, color, gridChoice, virtual_base);
+			{		
+				tetr->x[3] = 3;
+				tetr->y[3] = 1;
+				VGA_Draw_Tetromino_Square(tetr->x[3], tetr->y[3], color, gridChoice, virtual_base);
+				for(i = 0; i < 3; i++)
+				{		
+					tetr->x[i] = i + 3;
+					tetr->y[i] = 0;
+					VGA_Draw_Tetromino_Square(tetr->x[i], tetr->y[i], color, gridChoice, virtual_base);
 				}
-				VGA_Draw_Tetromino_Square(3, 1, color, gridChoice, virtual_base);
+				tetr->color = color;
 			}
 			else if(gridChoice == 1)
 			{
@@ -452,11 +461,19 @@ void VGA_Draw_Next_Tetromino(int tetrominoChoice, int gridChoice, struct Tetromi
 			color = YELLOW;
 			if(gridChoice == 0)
 			{
-				for(i = 3; i < 5; i++)
+				for(i = 0; i < 2; i++)
 				{
-					VGA_Draw_Tetromino_Square(i, 0, color, gridChoice, virtual_base);
-					VGA_Draw_Tetromino_Square(i, 1, color, gridChoice, virtual_base);
+					tetr->x[i] = i+4;
+					tetr->y[i] = 0;
+					VGA_Draw_Tetromino_Square(tetr->x[i], tetr->y[i], color, gridChoice, virtual_base);
 				}
+				for(i = 2; i < 4; i++)
+				{
+					tetr->x[i] = i+2;
+					tetr->y[i] = 1;
+					VGA_Draw_Tetromino_Square(tetr->x[i], tetr->y[i], color, gridChoice, virtual_base);
+				}
+				tetr->color = color;
 			}
 			else if(gridChoice == 1)
 			{
@@ -472,14 +489,20 @@ void VGA_Draw_Next_Tetromino(int tetrominoChoice, int gridChoice, struct Tetromi
 			color = GREEN;
 			if(gridChoice == 0)
 			{
-				for(i = 4; i < 6; i++)
+				for(i = 0; i < 2; i++)
 				{
-					VGA_Draw_Tetromino_Square(i, 0, color, gridChoice, virtual_base);
+					tetr->x[i] = i + 4;
+					tetr->y[i] = 0;
+					VGA_Draw_Tetromino_Square(tetr->x[i], tetr->y[i], color, gridChoice, virtual_base);
+
 				}
-				for(i = 3; i < 5; i++)
+				for(i = 2; i < 4; i++)
 				{
-					VGA_Draw_Tetromino_Square(i, 1, color, gridChoice, virtual_base);
+					tetr->x[i] = i + 1;
+					tetr->y[i] = 1;
+					VGA_Draw_Tetromino_Square(tetr->x[i], tetr->y[i], color, gridChoice, virtual_base);
 				}
+				tetr->color = color;
 			}
 			else if(gridChoice == 1)
 			{
@@ -501,15 +524,22 @@ void VGA_Draw_Next_Tetromino(int tetrominoChoice, int gridChoice, struct Tetromi
 			{
 				for(i = 3; i < 6; i++)
 				{
-					VGA_Draw_Tetromino_Square(i, 1, color, gridChoice, virtual_base);
+					tetr->x[i-3] = i;
+					tetr->y[i-3] = 1;
+					VGA_Draw_Tetromino_Square(tetr->x[i-3], tetr->y[i-3], color, gridChoice, virtual_base);
 				}
-				VGA_Draw_Tetromino_Square(4, 0, color, gridChoice, virtual_base);
+				tetr->x[3] = 4;
+				tetr->y[3] = 0;
+				tetr->color = color;
+				VGA_Draw_Tetromino_Square(tetr->x[3], tetr->y[3], color, gridChoice, virtual_base);
+
 			}
 			else if(gridChoice == 1)
 			{
 				for(i = 0; i < 3; i++)
 				{
 					VGA_Draw_Tetromino_Square(i, 2, color, gridChoice, virtual_base);
+				
 				}
 				VGA_Draw_Tetromino_Square(2, 1, color, gridChoice, virtual_base);
 			}
@@ -519,14 +549,19 @@ void VGA_Draw_Next_Tetromino(int tetrominoChoice, int gridChoice, struct Tetromi
 			color = RED;
 			if(gridChoice == 0)
 			{
-				for(i = 3; i < 5; i++)
+				for(i = 0; i < 2; i++)
 				{
-					VGA_Draw_Tetromino_Square(i, 0, color, gridChoice, virtual_base);
+					tetr->x[i] = i+4;
+					tetr->y[i] = 0;	
+					VGA_Draw_Tetromino_Square(tetr->x[i], tetr->y[i], color, gridChoice, virtual_base);			
 				}
-				for(i = 4; i < 6; i++)
+				for(i = 2; i < 4; i++)
 				{
-					VGA_Draw_Tetromino_Square(i, 1, color, gridChoice, virtual_base);
+					tetr->x[i] = i+3;
+					tetr->y[i] = 1;
+					VGA_Draw_Tetromino_Square(tetr->x[i], tetr->y[i], color, gridChoice, virtual_base);	
 				}
+				tetr->color = color;
 			}
 			else if(gridChoice == 1)
 			{
@@ -545,38 +580,6 @@ void VGA_Draw_Next_Tetromino(int tetrominoChoice, int gridChoice, struct Tetromi
 			printf("DEFAULT CASE, we should not be here!\n");
 			break;
 	}
-}
-
-/****************************************************************************************
- * Delete Old Tetromino
-****************************************************************************************/
-void VGA_Delete_Old(int x1_old, int y1_old, int x2_old, int y2_old, int x3_old, int y3_old, int x4_old, int y4_old, short **gridArray, void *virtual_base)
-{ 	
-	// Delete Old
-	VGA_Draw_Tetromino_Square(x1_old, y1_old, BLACK, PLAYAREAGRID, virtual_base);
-	gridArray[x1_old][y1_old] = BLACK;
-	VGA_Draw_Tetromino_Square(x2_old, y2_old, BLACK, PLAYAREAGRID, virtual_base);
-	gridArray[x2_old][y2_old] = BLACK;
-	VGA_Draw_Tetromino_Square(x3_old, y3_old, BLACK, PLAYAREAGRID, virtual_base);
-	gridArray[x3_old][y3_old] = BLACK;
-	VGA_Draw_Tetromino_Square(x4_old, y4_old, BLACK, PLAYAREAGRID, virtual_base);
-	gridArray[x4_old][y4_old] = BLACK;
-}
-
-/****************************************************************************************
- * Draw New Tetromino
-****************************************************************************************/
-void VGA_Draw_New(int x1_new, int y1_new, int x2_new, int y2_new, int x3_new, int y3_new, int x4_new, int y4_new, short color, short **gridArray, void *virtual_base)
-{ 
-	// Draw New
-	VGA_Draw_Tetromino_Square(x1_new, y1_new, color, PLAYAREAGRID, virtual_base);
-	gridArray[x1_new][y1_new] = color;
-	VGA_Draw_Tetromino_Square(x2_new, y2_new, color, PLAYAREAGRID, virtual_base);
-	gridArray[x2_new][y2_new] = color;
-	VGA_Draw_Tetromino_Square(x3_new, y3_new, color, PLAYAREAGRID, virtual_base);
-	gridArray[x3_new][y3_new] = color;
-	VGA_Draw_Tetromino_Square(x4_new, y4_new, color, PLAYAREAGRID, virtual_base);
-	gridArray[x4_new][y4_new] = color;
 }
 
 /****************************************************************************************
@@ -631,8 +634,8 @@ void Row_Checker(short ** gridArray, struct Game *data, void *virtual_base)
 				{
 					gridArray[i][j] = gridArray[currentRow][j];
 					gridArray[currentRow][j] = BLACK;					
-					VGA_Draw_Tetromino_Square(j, currentRow, BLACK, PLAYAREAGRID, virtual_base);	
-					VGA_Draw_Tetromino_Square(j, i, gridArray[i][j], PLAYAREAGRID, virtual_base);	
+					VGA_Draw_Tetromino_Square(j, currentRow, BLACK, MAINGRID, virtual_base);	
+					VGA_Draw_Tetromino_Square(j, i, gridArray[i][j], MAINGRID, virtual_base);	
 				}		
 			}
 		}
@@ -655,7 +658,6 @@ void VGA_Rotate_Tetronimo(short **gridArray, struct Tetromino * tetr, void *virt
 { 
 	int oldx[4], oldy[4];
 	int newx[4], newy[4];
-	short color;
 	int i, newRotation, tetrominoChoice;
 	bool change = true;
 	
@@ -667,7 +669,6 @@ void VGA_Rotate_Tetronimo(short **gridArray, struct Tetromino * tetr, void *virt
 	oldy[1] = tetr->y[1];
 	oldy[2] = tetr->y[2];
 	oldy[3] = tetr->y[3];
-	color = tetr->color;
 	newRotation = tetr->rotation;
 	tetrominoChoice = tetr->tetrominoNumber;
 	
@@ -1042,13 +1043,13 @@ void VGA_Rotate_Tetronimo(short **gridArray, struct Tetromino * tetr, void *virt
 	if(change)
 	{
 		tetr->rotation = newRotation;
-		for(int i = 0; i < 4; i++)
+		for(i = 0; i < 4; i++)
 		{
+			VGA_Draw_Tetromino_Square(tetr->x[i], tetr->y[i], 0, MAINGRID, virtual_base);
 			tetr->x[i] = newx[i];
-			tetr->y[i] = newy[i];			
+			tetr->y[i] = newy[i];
+			VGA_Draw_Tetromino_Square(tetr->x[i], tetr->y[i], tetr->color, MAINGRID, virtual_base);		
 		}
-		VGA_Delete_Old(oldx[0], oldy[0], oldx[1], oldy[1], oldx[2], oldy[2], oldx[3], oldy[3], gridArray, virtual_base);
-		VGA_Draw_New(newx[0], newy[0], newx[1], newy[1], newx[2], newy[2], newx[3], newy[3], tetr->color, gridArray, virtual_base);
 	}
 	else printf("DEBUG: No rotation\n");	//DEBUG
 			
@@ -1057,24 +1058,23 @@ void VGA_Rotate_Tetronimo(short **gridArray, struct Tetromino * tetr, void *virt
 /****************************************************************************************
  * Shift Tetromino
 ****************************************************************************************/
-bool Tetromino_Shift(short **gridArray, struct Tetromino * movingTetptr, int shiftType, void *virtual_base)
+bool Tetromino_Shift(short gridArray[ROWS][COLUMNS], struct Tetromino * movingTetptr, int shiftType, void *virtual_base)
 { 
-	int oldx[4], oldy[4];
 	int newx[4], newy[4];
+	int i, j;
 	bool change = true;
 	bool set = false;
 
-	switch(shiftType)
+	//////////////////////////DEBUG	
+	printf("OLD\n");
+	for(i = 0 ; i<4; i++)
 	{
-		oldx[0] = movingTetptr->x[0];
-		oldx[1] = movingTetptr->x[1];
-		oldx[2] = movingTetptr->x[2];
-		oldx[3] = movingTetptr->x[3];
-		oldy[0] = movingTetptr->y[0];
-		oldy[1] = movingTetptr->y[1];
-		oldy[2] = movingTetptr->y[2];
-		oldy[3] = movingTetptr->y[3];
-		
+		printf("X%d: %d, ",i ,movingTetptr->x[i]);
+		printf("Y%d: %d\n",i ,movingTetptr->y[i]);
+	}
+
+	switch(shiftType)
+	{		
 		case 1:
 			// Shift Left
 				newx[0] = movingTetptr->x[0] - 1;
@@ -1109,45 +1109,50 @@ bool Tetromino_Shift(short **gridArray, struct Tetromino * movingTetptr, int shi
 				newy[3] = movingTetptr->y[3] + 1;	
 			break;
 		default:
+			printf("Invalid tetromino shift!\n");
 			break;
 	}
 
-	// Bound checking forthe translation of the Tetromino
+	printf("Bound Checking\n");
+	// Bound checking for the translation of the Tetromino
 	for(i = 0; i < 4; i++)
 	{
 		//Check if inside grid bounds.
-		if(newx[i] > 9  || newx[i] < 0 || newy[i] < 0)
+		if(newx[i] > 9  || newx[i] < 0 
+		|| newy[i] < 0)
 		{
 			change = false;
 			break;
 		}
-
 		// Check if space is taken.
-		if(gridArray[newy[i]][newx[i]] != BLACK)
+		else if(gridArray[newy[i]][newx[i]] != BLACK)
 		{
 			change = false;
-			break;
 		}
+			
 	}
 
+	printf("Apply changes\n");
 	// Apply changes if the rotation is valid.
 	if(change)
-	{
-		for(int i = 0; i < 4; i++)
-		{
-			tetr->x[i] = newx[i];
-			tetr->y[i] = newy[i];
+	{	
+		//Deleteold tetromino
+		for(i = 0; i < 4; i++)
+			VGA_Draw_Tetromino_Square(movingTetptr->x[i], movingTetptr->y[i], 0, MAINGRID, virtual_base);
 
-			// Check if the Tetromino hit the "ground".
-			if(newy[i] + 1 <= 14 
-			&& newy[i] + 1 == 14
-			|| gridArray[newy[i] + 1][newx[i]] != BLACK)
+		for(i = 0; i < 4; i++)
+		{
+			movingTetptr->x[i] = newx[i];
+			movingTetptr->y[i] = newy[i];
+			VGA_Draw_Tetromino_Square(movingTetptr->x[i], movingTetptr->y[i], movingTetptr->color, MAINGRID, virtual_base);
+
+			//Check if the Tetromino hit the "ground".
+			if(newy[i] == 14 || gridArray[newy[i] + 1][newx[i]] != 0x0000)
 			{
 				set = true;
+				printf("Piece Set\n");
 			}		
 		}
-		VGA_Delete_Old(oldx[0], oldy[0], oldx[1], oldy[1], oldx[2], oldy[2], oldx[3], oldy[3], gridArray, virtual_base);
-		VGA_Draw_New(newx[0], newy[0], newx[1], newy[1], newx[2], newy[2], newx[3], newy[3], tetr->color, gridArray, virtual_base);
 	}
 	else 
 	{
@@ -1159,7 +1164,7 @@ bool Tetromino_Shift(short **gridArray, struct Tetromino * movingTetptr, int shi
 /****************************************************************************************
  * Add Score to Total Points
 ****************************************************************************************/
-void addRowScore(struct Game data, int rowCount, void *virtual_base)
+void addRowScore(struct Game *data, int rowCount, void *virtual_base)
 {
 	switch(rowCount)
 	{
@@ -1188,7 +1193,7 @@ void initArrays(short **dataArray)
 	int i, j;
 
     // dynamically create an array of pointers of size `ROWS`
-	dataArray = (short**)malloc(sizeof(short *) * ROWS);
+	dataArray = malloc(sizeof(short *) * ROWS);
 	if(dataArray == NULL)
 	{
 		printf("%s", "Out of memory");
@@ -1199,7 +1204,7 @@ void initArrays(short **dataArray)
 	for (i = 0; i < ROWS; i++) 
 	{
 		// malloc space for row i's M column elements
-		dataArray[i] = (short *)malloc(sizeof(short) * COLUMNS);
+		dataArray[i] = malloc(sizeof(short) * COLUMNS);
         if (dataArray[i] == NULL)
         {
 			printf("%s", "Out of memory");
@@ -1217,9 +1222,9 @@ void initArrays(short **dataArray)
     }
 	
     // print the 2D array
-    for (int i = 0; i < ROWS; r++)
+    for (i = 0; i < ROWS; i++)
     {
-        for (int j = 0; j < COLUMNS; j++) {
+        for (j = 0; j < COLUMNS; j++) {
             printf("%hu ", dataArray[i][j]);   
         }
  
@@ -1230,7 +1235,7 @@ void initArrays(short **dataArray)
 int main(int argc,char ** argv) {
 	
     void *virtual_base;
-    int fd, file, i;
+    int fd, file, i, j;
 	const char *filename = "/dev/i2c-0";
 	uint8_t id;
 	bool bSuccess;
@@ -1240,8 +1245,8 @@ int main(int argc,char ** argv) {
 	
 	/* Game Variables */
 	bool changed = false;
-	short **gridData;			// Tetromino Square Grid
-	int lineCount = 0, level = 0, score = 0, randTetrominoChoice = 0;
+	int randTetrominoChoice;
+	short gridArray[15][10];			// Tetromino Square Grid
 	struct Tetromino movingTet;	// Tetromino moving on the screen
 	struct Tetromino nextTet;	// Tetromino to be dropped next
 	struct Game gameData;	// Game Data
@@ -1317,16 +1322,21 @@ int main(int argc,char ** argv) {
 	{	
 		VGA_Tetris_Setup(&gameData, virtual_base);
 		randTetrominoChoice = rand() % 7;
-		initArrays(gridData);
+		for(i = 0; i < 15; i++)
+			for(j = 0; j < 10; j++)
+				gridArray[i][j] = 0x0000;
 		VGA_Draw_Next_Tetromino(randTetrominoChoice, NEXTPIECEGRID, &nextTet, virtual_base);
 		getchar();
-		//main grid test
-		for(i = 0; i < 7; i++)
-		{
-			printf("Drawing: %d\n",i);
-			VGA_Draw_Next_Tetromino(i, 0, &movingTet, virtual_base);
+		
+		//VGA_Draw_Next_Tetromino(0, MAINGRID, &movingTet, virtual_base);
+
+		//tetromino movement testing
+		for(i = 0; i < 7; i++){
+			VGA_Clear(virtual_base);
+			VGA_Tetris_Setup(&gameData, virtual_base);
+			VGA_Draw_Next_Tetromino(i, MAINGRID, &movingTet, virtual_base);
+			while(!(Tetromino_Shift(gridArray, &movingTet, 1, virtual_base)) && getchar() != ' ');
 			getchar();
-			//VGA_Delete_Old(movingTet.x[0],movingTet.y[0],movingTet.x[1],movingTet.y[1],movingTet.x[2],movingTet.y[2],movingTet.x[3],movingTety[3], gridData, virtual_base);
 		}
 		
 		usleep(3000);
@@ -1373,14 +1383,15 @@ int main(int argc,char ** argv) {
 		exit(0);
 	}
 	if (!bSuccess)
-	printf("Failed to access accelerometer\r\n");
+		printf("Failed to access accelerometer\r\n");
 
 	if (file)
 		close(file);
 		
 	printf("gsensor, bye!\r\n");			
 	
-	if( munmap( virtual_base, HW_REGS_SPAN ) != 0 ) {
+	if( munmap( virtual_base, HW_REGS_SPAN ) != 0 ) 
+	{
 		printf( "ERROR: munmap() failed...\n" );
 		close( fd );
 		return( 1 );
@@ -1389,13 +1400,11 @@ int main(int argc,char ** argv) {
 	close( fd );
 
 	// deallocate memory
-    for (int i = 0; i < ROWS; i++) {
-        free(dataArray[i]);
+    for (i = 0; i < ROWS; i++) 
+	{
+        free(gridArray[i]);
     }
-    free(dataArray);
+    free(gridArray);
  
     return 0;
-}
-	return( 0 );
-
 }
