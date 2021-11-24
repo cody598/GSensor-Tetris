@@ -580,7 +580,7 @@ void VGA_Draw_Next_Tetromino(int tetrominoChoice, int gridChoice, struct Tetromi
 /****************************************************************************************
  * Check Each Row and Shift
 ****************************************************************************************/
-void Row_Checker(short ** gridArray, struct Game *data, void *virtual_base)
+void Row_Checker(short gridArray[ROWS][COLUMNS], struct Game *data, void *virtual_base)
 { 
 	int rows[ROWS];
 	int currentRow, highestRow, shiftRow, i, j,  rowCount = 0;
@@ -1193,6 +1193,14 @@ void addRowScore(struct Game *data, int rowCount, void *virtual_base)
 }
 
 /****************************************************************************************
+ * Generate Random Number Between 0-6
+****************************************************************************************/
+int randomNumber()
+{
+	return rand() % 7;
+}
+
+/****************************************************************************************
  * Initialize Multiple Arrays
 ****************************************************************************************/
 void initArrays(short **dataArray)
@@ -1245,14 +1253,14 @@ int main(int argc,char ** argv) {
     int fd, file, i, j;
 	const char *filename = "/dev/i2c-0";
 	uint8_t id;
-	bool bSuccess;
+	bool bSuccess, set;
 	const int mg_per_digi = 4;
 	uint16_t szXYZ[3];
 	int delay = 1000000; // 1 second
+	int shiftState = 0;
 	
 	/* Game Variables */
 	bool changed = false;
-	int randTetrominoChoice;
 	short gridArray[15][10];			// Tetromino Square Grid
 	struct Tetromino movingTet;	// Tetromino moving on the screen
 	struct Tetromino nextTet;	// Tetromino to be dropped next
@@ -1328,11 +1336,10 @@ int main(int argc,char ** argv) {
 	if((c == '1'))
 	{	
 		VGA_Tetris_Setup(&gameData, virtual_base);
-		randTetrominoChoice = rand() % 7;
 		for(i = 0; i < 15; i++)
 			for(j = 0; j < 10; j++)
 				gridArray[i][j] = 0x0000;
-		VGA_Draw_Next_Tetromino(randTetrominoChoice, NEXTPIECEGRID, &nextTet, virtual_base);
+		VGA_Draw_Next_Tetromino(randomNumber(), NEXTPIECEGRID, &nextTet, virtual_base);
 		getchar();
 		
 		//VGA_Draw_Next_Tetromino(0, MAINGRID, &movingTet, virtual_base);
@@ -1346,10 +1353,11 @@ int main(int argc,char ** argv) {
 			getchar();
 		}
 		
-		usleep(3000);
+		usleep(5000);
 		
-		while(bSuccess){
-
+/* 		while(bSuccess)
+		{
+			set = Tetromino_Shift(gridArray, &movingTet, 3, virtual_base));
 			if (ADXL345_IsDataReady(file)){
 				bSuccess = ADXL345_XYZ_Read(file, szXYZ);
 				
@@ -1357,32 +1365,37 @@ int main(int argc,char ** argv) {
 					xg = (int16_t) szXYZ[0]*mg_per_digi;
 					yg = (int16_t) szXYZ[1]*mg_per_digi;					
 					// Movement Detection
-					if(xg > 100){
+					if(xg < -100){
 						changed = true;
+						shiftState = 1;
 					}
-					else if(xg < -100){
+					else if(xg > 100){
+						changed = true;
+						shiftState = 2;
+					}
+					else if(yg < -100){			
+						changed = true;
+						shiftState = 3;
+					}
+				}
+				if(changed == true)
+				{
+					changed = false;
+					set = Tetromino_Shift(gridArray, &movingTet, shiftState, virtual_base));
+				}
 
-						changed = true;
-					}
-				
-					if(yg > 100){
-						
-						changed = true;
-					}
-					else if(yg < -100){
-						
-						changed = true;
-					}
-					if(changed == true)
-					{
-						changed = false;
-					}
-					
-					usleep(delay);
+				if(set == true)
+				{
+					Row_Checker(gridArray, &gameData, virtual_base);
+					memset(&movingTet, 0, sizeof(movingTet));
+					movingTet = nextTet;
+					memset(&nextTet, 0, sizeof(nextTet));
+					VGA_Draw_Next_Tetromino(movingTet.tetrominoChoice, MAINGRID, &movingTet, virtual_base);
+					VGA_Draw_Next_Tetromino(randomNumber(), NEXTPIECEGRID, &nextTet, virtual_base);				
 				}
 			}
-		}
-    
+			usleep(delay);
+		}  */
 	}
 	// Exit
 	else if((c != '1'))
