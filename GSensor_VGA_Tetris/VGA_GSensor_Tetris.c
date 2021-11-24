@@ -1053,6 +1053,7 @@ bool VGA_Rotate_Tetronimo(short gridArray[ROWS][COLUMNS], struct Tetromino * tet
 				printf("Piece Set After Rotation\n");
 			}		
 		}
+		movingTetptr->rotation = newRotation;
 	}
 	else 
 	{
