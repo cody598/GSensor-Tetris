@@ -1195,10 +1195,10 @@ int main(int argc,char ** argv) {
 	uint16_t szXYZ[3];
 	int delay = 1000000; // 1 second
 	int shiftState = 0;
-	
+
 	/* Game Variables */
 	bool changed = false;
-	short gridArray[15][10];			// Tetromino Square Grid
+	//short gridArray[15][10];			// Tetromino Square Grid
 	struct Tetromino movingTet;	// Tetromino moving on the screen
 	struct Tetromino nextTet;	// Tetromino to be dropped next
 	struct Game gameData;	// Game Data
@@ -1273,9 +1273,15 @@ int main(int argc,char ** argv) {
 	if((c == '1'))
 	{	
 		VGA_Tetris_Setup(&gameData, virtual_base);
-		for(i = 0; i < 15; i++)
-			for(j = 0; j < 10; j++)
+		// ---------------------------------------------------------------------
+		short** gridArray = new int*[ROWS];
+		for(int i=0; i<ROWS; i++)
+			gridArray[i] = new int[COLUMNS];
+		// ---------------------------------------------------------------------
+		for(i = 0; i < ROWS; i++)
+			for(j = 0; j < COLUMNS; j++)
 				gridArray[i][j] = 0x0000;
+		
 		VGA_Draw_Next_Tetromino(randomNumber(), NEXTPIECEGRID, &nextTet, virtual_base);
 		getchar();
 		
