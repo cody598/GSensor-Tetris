@@ -1197,7 +1197,7 @@ int main(int argc,char ** argv) {
 	int shiftState = 0;
 
 	/* Game Variables */
-	bool changed = false;
+	bool gameOver = false, changed = false;
 	//short gridArray[15][10];			// Tetromino Square Grid
 	struct Tetromino movingTet;	// Tetromino moving on the screen
 	struct Tetromino nextTet;	// Tetromino to be dropped next
