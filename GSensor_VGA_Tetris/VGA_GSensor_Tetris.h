@@ -19,6 +19,14 @@
 #define XBOTTOMRIGHTINNEROFFSET 10
 #define YBOTTOMRIGHTINNEROFFSET 21
 
+// Define State
+#define STARTSCREEN
+#define GAMESETUP
+#define DRAWGRID
+#define MOVETETR
+#define DROPTETR
+#define GAMEOVER
+
 // Play Area + Border (Values Are In Regards To Pixels)
 #define TOPOFFSET 0
 #define BOTTOMOFFSET 480
