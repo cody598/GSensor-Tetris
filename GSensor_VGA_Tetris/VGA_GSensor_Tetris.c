@@ -38,7 +38,7 @@ struct Game
 	int score;
 	int level;
 	int lines;
-	int rowCount;
+	double triggerTime;
 };
 
 
@@ -73,8 +73,6 @@ bool ADXL345_REG_READ(int file, uint8_t address,uint8_t *value){
 			bSuccess = true;
 		}
 	}
-		
-	
 	return bSuccess;	
 }
 
@@ -329,6 +327,7 @@ void VGA_Tetris_Setup(struct Game *data, void *virtual_base)
 	data->lines = 0;
 	data->level = 0;
 	data->rowCount = 0;
+	data->triggerTime = 3;
 	
 	VGA_Draw_Score(data, virtual_base);
 	VGA_Draw_Line(data, virtual_base);
@@ -348,7 +347,26 @@ void VGA_DrawStartScreen(void *virtual_base)
     VGA_text (15, SCORETOPOFFSET+4,"    | |  | |____   | |  | | \\ \\ _| |_  ____) |", virtual_base);
     VGA_text (15, SCORETOPOFFSET+5,"    |_|  |______|  |_|  |_|  \\_\\_____| _____/ ", virtual_base);
 	
-	VGA_text (18, SCORETOPOFFSET+8,"    PRESS 1 THEN ENTER TO BEGIN PLAYING", virtual_base);
+	VGA_text (18, SCORETOPOFFSET+8,"    Press 1 Then Enter to Begin Playing Tetris", virtual_base);
+	VGA_text (18, SCORETOPOFFSET+10,"    CREATED BY", virtual_base);
+	VGA_text (18, SCORETOPOFFSET+11,"    Anthony Garvalena", virtual_base);
+	VGA_text (18, SCORETOPOFFSET+12,"    Cesar Zavala Clerx", virtual_base);
+	VGA_text (18, SCORETOPOFFSET+13,"    Cody Morse", virtual_base);
+}
+
+/****************************************************************************************
+ * Draw Game Over
+****************************************************************************************/
+void VGA_DrawGameOverScreen(struct Game *data, void *virtual_base)
+{ 
+	VGA_text (15, SCORETOPOFFSET," _____   ___  ___  ___ _____   _____  _   _ ___________ _ _ ", virtual_base);
+    VGA_text (15, SCORETOPOFFSET+1,"|  __ \\ / _ \\ |  \\/  ||  ___| |  _  || | | |  ___| ___ \\ | |", virtual_base);
+    VGA_text (15, SCORETOPOFFSET+2,"| |  \\// /_\\ \\| .  . || |__   | | | || | | | |__ | |_/ / | |", virtual_base);
+    VGA_text (15, SCORETOPOFFSET+3,"| | __ |  _  || |\\/| ||  __|  | | | || | | |  __||    /| | |", virtual_base);
+    VGA_text (15, SCORETOPOFFSET+4,"| |_\\ \\| | | || |  | || |___  \\ \\_/ /\\ \\_/ / |___| |\\ \\|_|_|", virtual_base);
+    VGA_text (15, SCORETOPOFFSET+5," \\____/\\_| |_/\\_|  |_/\\____/   \\___/  \\___/\\____/\\_| \\_(_|_)", virtual_base);
+	VGA_text (18, SCORETOPOFFSET+8,data->score, virtual_base);
+	VGA_text (18, SCORETOPOFFSET+10,"    PRESS 1 THEN ENTER TO RESTART, OTHERWISE PRESS ANYTHING ELSE", virtual_base);
 }
 
 /****************************************************************************************
@@ -574,76 +592,48 @@ void VGA_Draw_Next_Tetromino(int tetrominoChoice, int gridChoice, struct Tetromi
 /****************************************************************************************
  * Check Each Row and Shift
 ****************************************************************************************/
-void Row_Checker(short gridArray[ROWS][COLUMNS], struct Game *data, void *virtual_base)
+void Row_Checker(short *grid, struct Game *data, void *virtual_base)
 { 
-	int rows[ROWS];
-	int currentRow, highestRow, shiftRow, i, j,  rowCount = 0;
-	bool rowBlack = true, rowFilled = true;
+	// *(gridArray + row*COLUMNS + col) Check Current Space
+	// *(gridArray + (i + 1)*COLUMNS + j) Check Below
+	int row, col, tempRows;
+	bool clear;
+	int linesCleared = 0;
 
-	
-	for(i = 0; i < ROWS; i++)
+	//Iterate through the rows starting at the top.
+	for(row = 0; row < ROWS; row++)
 	{
-		rows[i] = 0;
-	}
-	for (i = 0; i < ROWS; i++) 
-	{
-		for (j = 0; j < COLUMNS; j++) 
+		// Check if the row is full.
+		clear = true;
+		for(col = 0; col < COLUMNS; col++)
 		{
-			if(gridArray[i][j] == BLACK)
-			{
-				rowFilled = false;
-			}
-			else
-			{
-				rowBlack = false;
-			}
+			if(*(grid + row*COLUMNS + col) == 0) clear = false;
 		}
-		if(rowFilled == true)
+
+		// If the row is full and must be cleared.
+		if(clear)
 		{
-			rows[i] = 1;
-			rowCount++;
-		}
-		rowFilled = true;
-		
-		if(rowBlack == false)
-		{
-			highestRow = i;
-			rowBlack = true;
-			
-		}
-    }
-	
-	for(i = 0; i < highestRow; i++)
-	{
-		if(rows[i] == 1)
-		{
-			for(currentRow = i+1; i <= highestRow; currentRow++)
+			linesCleared++;
+			//Shift all rows on top the cleared one down 1 square.
+			for(tempRows = row; tempRows > 0; tempRows--)
 			{
-				for(j = 0; j < COLUMNS; j++)
+				for(col = 0; col < COLUMNS; col++)
 				{
-					gridArray[i][j] = gridArray[currentRow][j];
-					gridArray[currentRow][j] = BLACK;					
-					VGA_Draw_Tetromino_Square(j, currentRow, BLACK, MAINGRID, virtual_base);	
-					VGA_Draw_Tetromino_Square(j, i, gridArray[i][j], MAINGRID, virtual_base);	
-				}		
+					*(grid + tempRows*COLUMNS + col) = *(grid + (tempRows-1)*COLUMNS + col)
+				}	
 			}
+			//Reset main loop
+			rows = -1;
 		}
-		for(shiftRow = i; shiftRow <= highestRow; shiftRow++)
-		{
-			rows[shiftRow] = rows[shiftRow + 1];
-		}
-		highestRow--;
 	}
-	if(rowCount > 0)
-	{
-		//addRowScore(data, rowCount, &virtual_base);
-	}
+	data->lines += linesCleared;
+	addRowScore(data, linesCleared, virtual_base);
 }
 
 /****************************************************************************************
- * Rotate Tetrominoes CW
+ * Rotate Tetrominoes Clockwise
 ****************************************************************************************/
-bool VGA_Rotate_Tetromino(short gridArray[ROWS][COLUMNS], struct Tetromino * tetr, void *virtual_base)
+bool VGA_Rotate_Tetromino(short *gridArray, struct Tetromino * tetr, void *virtual_base)
 { 
 	int newx[4], newy[4];
 	int i, newRotation, tetrominoChoice;
@@ -946,11 +936,10 @@ bool VGA_Rotate_Tetromino(short gridArray[ROWS][COLUMNS], struct Tetromino * tet
 			break;
 		}
 		// Check if space is taken.
-		else if(gridArray[newy[i]][newx[i]] != BLACK)
+		else if(*(gridArray + newy[i]*COLUMNS + [newx[i]] != BLACK));                    
 		{
 			change = false;
 		}
-			
 	}
 	
 	// Apply changes if the rotation is valid.
@@ -967,14 +956,7 @@ bool VGA_Rotate_Tetromino(short gridArray[ROWS][COLUMNS], struct Tetromino * tet
 		// 	printf("X:%d,Y:%d\n", newx[i], newy[i]);
 			tetr->x[i] = newx[i];
 			tetr->y[i] = newy[i];
-			VGA_Draw_Tetromino_Square(tetr->x[i], tetr->y[i], tetr->color, MAINGRID, virtual_base);
-
-			//Check if the Tetromino hit the "ground".
-			if(newy[i] == 14 || gridArray[newy[i] + 1][newx[i]] != BLACK)
-			{
-				set = true;
-				printf("Piece Set After Rotation\n");
-			}		
+			VGA_Draw_Tetromino_Square(tetr->x[i], tetr->y[i], tetr->color, MAINGRID, virtual_base);	
 		}
 		tetr->rotation = newRotation;
 	}
@@ -988,11 +970,11 @@ bool VGA_Rotate_Tetromino(short gridArray[ROWS][COLUMNS], struct Tetromino * tet
 /****************************************************************************************
  * Shift Tetromino
 ****************************************************************************************/
-bool Tetromino_Shift(short gridArray[ROWS][COLUMNS], struct Tetromino * movingTetptr, int shiftType, void *virtual_base)
+bool Tetromino_Shift(short *gridArray, struct Tetromino * movingTetptr, int shiftType, void *virtual_base)
 { 
 	int newx[4], newy[4];
 	int i, j;
-	bool change = true, set = false;
+	bool change = true, set = false, delete = false;
 
 	//////////////////////////DEBUG	
 	printf("OLD\n");
@@ -1035,7 +1017,7 @@ bool Tetromino_Shift(short gridArray[ROWS][COLUMNS], struct Tetromino * movingTe
 				newx[2] = movingTetptr->x[2];
 				newy[2] = movingTetptr->y[2] + 1;
 				newx[3] = movingTetptr->x[3];
-				newy[3] = movingTetptr->y[3] + 1;	
+				newy[3] = movingTetptr->y[3] + 1;
 			break;
 		default:
 			printf("Invalid tetromino shift!\n");
@@ -1047,6 +1029,13 @@ bool Tetromino_Shift(short gridArray[ROWS][COLUMNS], struct Tetromino * movingTe
 	// Bound checking for the translation of the Tetromino
 	for(i = 0; i < 4; i++)
 	{
+		//Check if the Tetromino hit the "ground".
+		if(newy[i] > 14)
+		{
+			set = true;
+			change = false;
+		}
+
 		//Check if inside grid bounds.
 		if(newx[i] > 9  || newx[i] < 0 
 		|| newy[i] < 0)
@@ -1055,11 +1044,12 @@ bool Tetromino_Shift(short gridArray[ROWS][COLUMNS], struct Tetromino * movingTe
 			break;
 		}
 		// Check if space is taken.
-		else if(gridArray[newy[i]][newx[i]] != BLACK)
+		else if(*(gridArray + newy[i]*COLUMNS + newx[i] ! = BLACK))
 		{
 			change = false;
-		}
-			
+			// If an old tetromino is hit when shifting down, we set the current one.
+			if(shiftType == 3) set = true;	
+		}			
 	}
 
 	printf("Apply changes\n");
@@ -1068,20 +1058,24 @@ bool Tetromino_Shift(short gridArray[ROWS][COLUMNS], struct Tetromino * movingTe
 	{	
 		//Delete old tetromino
 		for(i = 0; i < 4; i++)
+		{
 			VGA_Draw_Tetromino_Square(movingTetptr->x[i], movingTetptr->y[i], 0, MAINGRID, virtual_base);
+		}
 
 		for(i = 0; i < 4; i++)
 		{
 			movingTetptr->x[i] = newx[i];
 			movingTetptr->y[i] = newy[i];
-			VGA_Draw_Tetromino_Square(movingTetptr->x[i], movingTetptr->y[i], movingTetptr->color, MAINGRID, virtual_base);
+			VGA_Draw_Tetromino_Square(movingTetptr->x[i], movingTetptr->y[i], movingTetptr->color, MAINGRID, virtual_base);	
+		}
+	}
 
-			//Check if the Tetromino hit the "ground".
-			if(newy[i] == 14 || gridArray[newy[i] + 1][newx[i]] != BLACK)
-			{
-				set = true;
-				printf("Piece Set\n");
-			}		
+	//Set the tetromino, adding it into the grid, and returning true.
+	else if(set)
+	{	
+		for(i = 0; i < 4; i++)
+		{	
+			*(gridArray + movingTetptr->y[i]*COLUMNS + movingTetptr->x[i]) = movingTetptr->color;
 		}
 	}
 	else 
@@ -1091,11 +1085,10 @@ bool Tetromino_Shift(short gridArray[ROWS][COLUMNS], struct Tetromino * movingTe
 	return set;
 }
 
-/****************************************************************************************
+/**************************************************************)
  * Add Score to Total Points
 ****************************************************************************************/
-void addRowScore(struct Game *data, int rowCount, void *virtual_base)
-{
+void addRowScore(struct Game *data, int rowCount, void *virtual_base);
 	switch(rowCount)
 	{
 		case 1:
@@ -1124,52 +1117,20 @@ int randomNumber()
 }
 
 /****************************************************************************************
- * Initialize Multiple Arrays
+ * Check if Tetromino is set
 ****************************************************************************************/
-void initArrays(short **dataArray)
-{ 
-	int i, j;
-
-    // dynamically create an array of pointers of size `ROWS`
-	dataArray = malloc(sizeof(short *) * ROWS);
-	if(dataArray == NULL)
+bool checkTetrominoSetState(short *gridArray, struct Tetromino *movingTetptr)
+{
+	for(i = 0; i < 4; i++)
 	{
-		printf("%s", "Out of memory");
-        exit(0);
-	}
-	
-	// dynamically allocate memory of size `COLUMNS for each row	
-	for (i = 0; i < ROWS; i++) 
-	{
-		// malloc space for row i's M column elements
-		dataArray[i] = malloc(sizeof(short) * COLUMNS);
-        if (dataArray[i] == NULL)
-        {
-			printf("%s", "Out of memory");
-			exit(0);
-        }
-	}
-	
-	// assign values to the allocated memory
-	for (i = 0; i < ROWS; i++) 
-	{
-		for (j = 0; j < COLUMNS; j++) 
+		//Check if the Tetromino hit the "ground".
+		if(movingTetptr->y[i] == 14 || *(gridArray + (movingTetptr->y[i] + 1)*COLUMNS + movingTetptr->x[i] != BLACK))
 		{
-			dataArray[i][j] = BLACK;
-		}
-    }
-	
-    // print the 2D array
-    for (i = 0; i < ROWS; i++)
-    {
-        for (j = 0; j < COLUMNS; j++) {
-            printf("%hu ", dataArray[i][j]);   
-        }
- 
-        printf("\n");
-    }
+			printf("Piece Set\n");
+			return true;
+		}	
+	}
 }
-
 
 /* Draws a visible grid to debug tetromino movements. */
 void drawDebugGrid( void * virtual_base)
@@ -1194,11 +1155,13 @@ int main(int argc,char ** argv) {
 	const int mg_per_digi = 4;
 	uint16_t szXYZ[3];
 	int delay = 1000000; // 1 second
-	int shiftState = 0;
+	int shiftType = 0, state = 0;
+	int sec = 0, triggerTime = 3;
+	clock_t before = clock();
 
 	/* Game Variables */
 	bool gameOver = false, changed = false;
-	//short gridArray[15][10];			// Tetromino Square Grid
+	short *gridArray = malloc(ROWS * COLUMNS * sizeof(short));	// Tetromino Square Grid
 	struct Tetromino movingTet;	// Tetromino moving on the screen
 	struct Tetromino nextTet;	// Tetromino to be dropped next
 	struct Game gameData;	// Game Data
@@ -1260,28 +1223,172 @@ int main(int argc,char ** argv) {
         if (bSuccess)
             printf("id=%02Xh\r\n", id);
     } 	
-	
+
 	VGA_Clear(virtual_base);
-	VGA_DrawStartScreen(virtual_base);
-	printf("Do you want to start playing Tetris?\n ");
-	printf("[1] Yes\n ");
+	printf("Do you want to play Tetris or Debug?\n ");
+	printf("[1] Tetris\n ");	
+	printf("[2] Start Debug Mode\n ");
 	printf("Choice: ");
 	char c;
 	c =	getchar();
-	
+
 	// Start Tetris
 	if((c == '1'))
+	{
+		while(bSuccess)
+		{
+			set = Tetromino_Shift(gridArray, &movingTet, 3, virtual_base));
+			if (ADXL345_IsDataReady(file)){
+				bSuccess = ADXL345_XYZ_Read(file, szXYZ);
+				
+				if (bSuccess){
+					xg = (int16_t) szXYZ[0]*mg_per_digi;
+					yg = (int16_t) szXYZ[1]*mg_per_digi;					
+					// Movement Detection
+					if(xg < -100){
+						changed = true;
+						shiftType = 1; // Shift Left State
+					}
+					else if(xg > 100){
+						changed = true;
+						shiftType = 2; // Shift Right State
+					}
+					else if(yg < -100){			
+						changed = true;
+						shiftType = 3; // Shift Down State
+					}
+				}
+
+				switch(state)
+				{
+					// Start Screen
+					case STARTSCREEN:
+							VGA_Clear(virtual_base);
+							VGA_DrawStartScreen(virtual_base);			
+							sleep(3);
+							state = GAMESETUP;
+						break;
+
+					// Initialize Grid and Scores
+					case GAMESETUP:
+						VGA_Tetris_Setup(&gameData, virtual_base);
+		
+						// Instantiate Grid
+						for(i = 0; i < ROWS; i++)
+							for(j = 0; j < COLUMNS; j++)
+								*(grid + i*COLUMNS + j) = BLACK; 
+						
+						VGA_Draw_Next_Tetromino(randomNumber(), NEXTPIECEGRID, &nextTet, virtual_base);	
+						state = DRAWGRID;
+						break;		
+
+					// Redraw grid and spawn the next tetromino.
+					case DRAWGRID:
+						// Redraw grid based on what is stored in the grid array.
+						for(r = 0; r < ROWS; r++)
+						{
+							for(c = 0; c < COLUMNS; c++)
+							{
+								VGA_Draw_Tetromino_Square(c, r, *(grid + r*COLUMNS + c), MAINGRID, virtual_base);
+							}
+						}
+						
+						//Spawn next tetromino.
+						VGA_Draw_Next_Tetromino(nextTet.tetrominoNumber , MAINGRID, &movingTet, virtual_base);
+						VGA_Draw_Next_Tetromino(randomNumber(), NEXTPIECEGRID, &nextTet, virtual_base);	
+						state = MOVETETR;
+						break;
+
+					// Allow Rotational and Translational movement of the Tetromino 	
+					case MOVETETR:
+						if(shiftType == 1)
+						{
+							Tetromino_Shift(grid, movingTet, 1, virtual_base);
+							shiftType = 0;
+						}
+						if(shiftType == 2)
+						{
+							Tetromino(grid, movingTet, 2, virtual_base);
+							shiftType = 0;
+						}
+						if(shiftType == 3)
+						{
+							state = DROPTETR
+							shiftType = 0;
+						}
+						// NEED TO IMPLEMENT ROTATION BUTTON CHECK
+						clock_t difference = clock() - before;
+						sec = difference / CLOCKS_PER_SEC;
+
+						if((difference / CLOCKS_PER_SEC) > gameData.triggerTime)
+						{
+							state = DROPTETR;
+						}
+						break;
+
+					// Drop Moving Tetromino Vertically (Speed at which it drops changes based on level)	
+					case DROPTETR:
+					
+						// If a tetromino is set...
+						if(Tetromino_Shift(Tetromino_Shift(grid, movingTet, 3, virtual_base)))
+						{
+							//If rows were shifted down, redraw the grid.
+							if(Row_Checker(grid, &gameData, virtual_base))
+								int level = floor(gameData.lines/5);
+								gameData.level = level + 1;
+								gameData.triggerTime = 3 * pow(.75, level);
+								state = DRAWGRID;
+
+							// Otherwise just set the tetromino, and spawn a new one.
+							else
+							{
+								//Spawn next tetromino.
+								VGA_Draw_Next_Tetromino(nextTet.tetrominoNumber , MAINGRID, &movingTet, virtual_base);
+								VGA_Draw_Next_Tetromino(randomNumber(), NEXTPIECEGRID, &nextTet, virtual_base);	
+								state = MOVETETR;
+							}
+						}
+						else state = MOVETETR;
+						before = clock();
+						break;
+
+					// Occurs when Tetromino reaches ceiling
+					case GAMEOVER:
+						VGA_DrawGameOverScreen(gameData, virtual_base)
+						c =	getchar();
+						// Restart Tetris
+						if((c == '1'))
+						{
+							state = GAMESETUP;
+							sleep(5);
+						}
+						else
+						{
+							VGA_Clear(virtual_base);
+							exit(0);
+						}
+						
+						break;		
+				}
+			}
+			//usleep(delay);
+		}  
+	}
+
+	// Start Debug mode
+	else if((c == '2'))
 	{	
 		VGA_Tetris_Setup(&gameData, virtual_base);
-		// ---------------------------------------------------------------------
-		short** gridArray = new int*[ROWS];
-		for(int i=0; i<ROWS; i++)
-			gridArray[i] = new int[COLUMNS];
-		// ---------------------------------------------------------------------
-		for(i = 0; i < ROWS; i++)
-			for(j = 0; j < COLUMNS; j++)
-				gridArray[i][j] = 0x0000;
 		
+		// Instantiate Grid
+		for(i = 0; i < ROWS; i++)
+		{
+			for(j = 0; j < COLUMNS; j++)
+			{
+				*(grid + i*COLUMNS + j) = BLACK; 
+			}
+		}
+
 		VGA_Draw_Next_Tetromino(randomNumber(), NEXTPIECEGRID, &nextTet, virtual_base);
 		getchar();
 		
@@ -1296,7 +1403,6 @@ int main(int argc,char ** argv) {
 		// 	while(!(Tetromino_Shift(gridArray, &movingTet, 1, virtual_base)) && getchar() != ' ');
 		// 	getchar();
 		// }
-
 
 		for(i = 1; i < 8; i++)
 		{
@@ -1321,52 +1427,7 @@ int main(int argc,char ** argv) {
 			getchar();
 		}
 
-
-
-		
 		usleep(5000);
-		
-/* 		while(bSuccess)
-		{
-			set = Tetromino_Shift(gridArray, &movingTet, 3, virtual_base));
-			if (ADXL345_IsDataReady(file)){
-				bSuccess = ADXL345_XYZ_Read(file, szXYZ);
-				
-				if (bSuccess){
-					xg = (int16_t) szXYZ[0]*mg_per_digi;
-					yg = (int16_t) szXYZ[1]*mg_per_digi;					
-					// Movement Detection
-					if(xg < -100){
-						changed = true;
-						shiftState = 1;
-					}
-					else if(xg > 100){
-						changed = true;
-						shiftState = 2;
-					}
-					else if(yg < -100){			
-						changed = true;
-						shiftState = 3;
-					}
-				}
-				if(changed == true)
-				{
-					changed = false;
-					set = Tetromino_Shift(gridArray, &movingTet, shiftState, virtual_base));
-				}
-
-				if(set == true)
-				{
-					Row_Checker(gridArray, &gameData, virtual_base);
-					memset(&movingTet, 0, sizeof(movingTet));
-					movingTet = nextTet;
-					memset(&nextTet, 0, sizeof(nextTet));
-					VGA_Draw_Next_Tetromino(movingTet.tetrominoChoice, MAINGRID, &movingTet, virtual_base);
-					VGA_Draw_Next_Tetromino(randomNumber(), NEXTPIECEGRID, &nextTet, virtual_base);				
-				}
-			}
-			usleep(delay);
-		}  */
 	}
 	// Exit
 	else if((c != '1'))
@@ -1391,10 +1452,6 @@ int main(int argc,char ** argv) {
 	close( fd );
 
 	// deallocate memory
-    for (i = 0; i < ROWS; i++) 
-	{
-        free(gridArray[i]);
-    }
     free(gridArray);
  
     return 0;
