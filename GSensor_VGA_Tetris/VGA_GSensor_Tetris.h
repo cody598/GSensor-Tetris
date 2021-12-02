@@ -13,11 +13,19 @@
 #define SQUAREHEIGHT 30
 #define SQUAREWIDTH 15
 #define NEXTPIECEGRID 1
-#define PLAYAREAGRID 0
+#define MAINGRID 0
 #define XBOTTOMRIGHTOUTEROFFSET 14
 #define YBOTTOMRIGHTOUTEROFFSET 29
 #define XBOTTOMRIGHTINNEROFFSET 10
 #define YBOTTOMRIGHTINNEROFFSET 21
+
+// Define State
+#define STARTSCREEN 0
+#define GAMESETUP 1
+#define DRAWGRID 2
+#define MOVETETR 3
+#define DROPTETR 4
+#define GAMEOVER 5
 
 // Play Area + Border (Values Are In Regards To Pixels)
 #define TOPOFFSET 0
