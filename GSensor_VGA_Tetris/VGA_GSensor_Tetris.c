@@ -337,9 +337,10 @@ void VGA_Tetris_Setup(struct Game *data, void *virtual_base)
 	
 	data->score = 0;
 	data->lines = 0;
-	data->level = 0;
+	data->level = 1;
 	data->rowCount = 0;
-	data->triggerTime = 3;
+	data->triggerTime = 750;
+	data->gameOver = false;
 	
 	VGA_Draw_Score(data, virtual_base);
 	VGA_Draw_Line(data, virtual_base);
@@ -375,17 +376,18 @@ void VGA_DrawGameOverScreen(struct Game *data, void *virtual_base)
 	char score[10];
 	sprintf(score, "%d", data->score);
 
-	VGA_text (13, SCORETOPOFFSET," _____   ___  ___  ___ _____   _____  _   _ ___________ _ _ ", virtual_base);
-    VGA_text (13, SCORETOPOFFSET+1,"|  __ \\ / _ \\ |  \\/  ||  ___| |  _  || | | |  ___| ___ \\ | |", virtual_base);
-    VGA_text (13, SCORETOPOFFSET+2,"| |  \\// /_\\ \\| .  . || |__   | | | || | | | |__ | |_/ / | |", virtual_base);
-    VGA_text (13, SCORETOPOFFSET+3,"| | __ |  _  || |\\/| ||  __|  | | | || | | |  __||    /| | |", virtual_base);
-    VGA_text (13, SCORETOPOFFSET+4,"| |_\\ \\| | | || |  | || |___  \\ \\_/ /\\ \\_/ / |___| |\\ \\|_|_|", virtual_base);
-    VGA_text (13, SCORETOPOFFSET+5," \\____/\\_| |_/\\_|  |_/\\____/   \\___/  \\___/\\____/\\_| \\_(_|_)", virtual_base);
-	VGA_text (30, SCORETOPOFFSET+8, "SCORE:", virtual_base);
-	VGA_text (38, SCORETOPOFFSET+8, score, virtual_base);
+	VGA_text (11, SCORETOPOFFSET," _____   ___  ___  ___ _____   _____  _   _ ___________ _ _ ", virtual_base);
+    VGA_text (11, SCORETOPOFFSET+1,"|  __ \\ / _ \\ |  \\/  ||  ___| |  _  || | | |  ___| ___ \\ | |", virtual_base);
+    VGA_text (11, SCORETOPOFFSET+2,"| |  \\// /_\\ \\| .  . || |__   | | | || | | | |__ | |_/ / | |", virtual_base);
+    VGA_text (11, SCORETOPOFFSET+3,"| | __ |  _  || |\\/| ||  __|  | | | || | | |  __||    /| | |", virtual_base);
+    VGA_text (11, SCORETOPOFFSET+4,"| |_\\ \\| | | || |  | || |___  \\ \\_/ /\\ \\_/ / |___| |\\ \\|_|_|", virtual_base);
+    VGA_text (11, SCORETOPOFFSET+5," \\____/\\_| |_/\\_|  |_/\\____/   \\___/  \\___/\\____/\\_| \\_(_|_)", virtual_base);
+	VGA_text (35, SCORETOPOFFSET+8, "SCORE:", virtual_base);
+	VGA_text (41, SCORETOPOFFSET+8, score, virtual_base);
 	VGA_text (23, SCORETOPOFFSET+10,"PRESS 1 THEN ENTER TO RESTART", virtual_base);
 	VGA_text (23, SCORETOPOFFSET+12,"OTHERWISE PRESS ANYTHING ELSE", virtual_base);
 }
+
 
 /****************************************************************************************
  * Draw Next Tetromino Tetrominoes
@@ -513,7 +515,7 @@ void VGA_Draw_Next_Tetromino(int tetrominoChoice, int gridChoice, struct Tetromi
 			}
 			else if(gridChoice == 1)
 			{
-				for(i = 0; i < 2; i++)
+				for(i = 1; i < 3; i++)
 				{
 					VGA_Draw_Tetromino_Square(i, 1, color, gridChoice, virtual_base);
 					VGA_Draw_Tetromino_Square(i, 2, color, gridChoice, virtual_base);
@@ -555,7 +557,7 @@ void VGA_Draw_Next_Tetromino(int tetrominoChoice, int gridChoice, struct Tetromi
 			break;
 		case 6:
 			// Draw T Tetromino
-			color = 0x00fc;
+			color = YELLOW;
 			if(gridChoice == 0)
 			{
 				for(i = 3; i < 6; i++)
@@ -577,7 +579,7 @@ void VGA_Draw_Next_Tetromino(int tetrominoChoice, int gridChoice, struct Tetromi
 					VGA_Draw_Tetromino_Square(i, 1, color, gridChoice, virtual_base);
 				
 				}
-				VGA_Draw_Tetromino_Square(2, 2, color, gridChoice, virtual_base);
+				VGA_Draw_Tetromino_Square(1, 2, color, gridChoice, virtual_base);
 			}
 			break;
 		case 7:
@@ -639,20 +641,17 @@ bool Row_Checker(short *grid, struct Game *data, void *virtual_base)
 			if(*(grid + row*COLUMNS + col) == 0) clear = false;
 		}
 
-		// If the row is full and must be cleared.
+		//***********NEED TO FIX ROW DELETION**********//
+		// If the row is full and must be cleared. 
 		if(clear)
 		{
+			printf("Clearing Should Occur\n");
 			linesCleared++;
-			//Shift all rows on top the cleared one down 1 square.
-			for(tempRows = row; tempRows > 0; tempRows--)
+			for(col = 0; col < COLUMNS; col++)
 			{
-				for(col = 0; col < COLUMNS; col++)
-				{
-					*(grid + tempRows*COLUMNS + col) = *(grid + (tempRows-1)*COLUMNS + col);
-				}	
+				*(grid + row*COLUMNS + col) = BLACK;
+				VGA_Draw_Tetromino_Square(row, col, BLACK, 0, virtual_base);
 			}
-			//Reset main loop
-			row = -1;
 		}
 	}
 
@@ -661,6 +660,7 @@ bool Row_Checker(short *grid, struct Game *data, void *virtual_base)
 	{
 		if(*(grid + 0*COLUMNS + col))
 		{
+			printf("Game Over 1");
 			data->gameOver = true;
 		}
 	}
@@ -1112,14 +1112,7 @@ bool Tetromino_Shift(short *gridArray, struct Tetromino * movingTetptr, int shif
 			movingTetptr->x[i] = newx[i];
 			movingTetptr->y[i] = newy[i];
 			VGA_Draw_Tetromino_Square(movingTetptr->x[i], movingTetptr->y[i], movingTetptr->color, MAINGRID, virtual_base);	
-		}
-		// Check if space is taken.
-		else if(*(gridArray + newy[i]*COLUMNS + newx[i] ! = BLACK))
-		{
-			change = false;
-			// If an old tetromino is hit when shifting down, we set the current one.
-			if(shiftType == 3) set = true;	
-		}			
+		}		
 	}
 
 	//Set the tetromino, adding it into the grid, and returning true.
@@ -1185,10 +1178,14 @@ int main(int argc,char ** argv) {
 	uint16_t szXYZ[3];
 	int shiftType = 0, state = 0;
 	clock_t before = clock();
-	int sec = 0;
+	int msec = 0;
+	// Converting time into milli_seconds
+	int milli_seconds;
+	// Storing start time
+	clock_t start_time = clock();
 
 	/* Game Variables */
-	bool gameOver = false, changed = false;
+	bool changed = false;
 	short *gridArray = malloc(ROWS * COLUMNS * sizeof(short));	// Tetromino Square Grid
 	struct Tetromino movingTet;	// Tetromino moving on the screen
 	struct Tetromino nextTet;	// Tetromino to be dropped next
@@ -1273,15 +1270,15 @@ int main(int argc,char ** argv) {
 					xg = (int16_t) szXYZ[0]*mg_per_digi;
 					yg = (int16_t) szXYZ[1]*mg_per_digi;					
 					// Movement Detection
-					if(xg < -100){
+					if(xg < -200){
 						changed = true;
 						shiftType = 1; // Shift Left State
 					}
-					else if(xg > 100){
+					else if(xg > 200){
 						changed = true;
 						shiftType = 2; // Shift Right State
 					}
-					else if(yg < -100){			
+					else if(yg < -200){			
 						changed = true;
 						shiftType = 3; // Shift Down State
 					}
@@ -1334,30 +1331,32 @@ int main(int argc,char ** argv) {
 
 					// Allow Rotational and Translational movement of the Tetromino 	
 					case MOVETETR:
-						if(shiftType == 1)
+						milli_seconds = 1000 * gameData.triggerTime;
+						start_time = clock();
+						do
 						{
-							Tetromino_Shift(gridArray, &movingTet, 1, virtual_base);
-							shiftType = 0;
-						}
-						if(shiftType == 2)
-						{
-							Tetromino_Shift(gridArray, &movingTet, 2, virtual_base);
-							shiftType = 0;
-						}
-						if(shiftType == 3)
-						{
-							state = DROPTETR;
-							shiftType = 0;
-						}
+							if(shiftType == 1)
+							{
+								Tetromino_Shift(gridArray, &movingTet, 1, virtual_base);
+								shiftType = 0;
+							}
+							if(shiftType == 2)
+							{
+								Tetromino_Shift(gridArray, &movingTet, 2, virtual_base);
+								shiftType = 0;
+							}
+							if(shiftType == 3)
+							{
+								Tetromino_Shift(gridArray, &movingTet, 3, virtual_base);
+								shiftType = 0;
+							}
+						} while(clock() < start_time + milli_seconds);// looping till required time is not achieved
 						// NEED TO IMPLEMENT ROTATION BUTTON CHECK
-						clock_t difference = clock() - before;
-						sec = difference / CLOCKS_PER_SEC;
-
-						if((difference / CLOCKS_PER_SEC) > gameData.triggerTime)
-						{
-							state = DROPTETR;
-						}
+						printf("Clock Trigger\n");
+						state = DROPTETR;
 						break;
+
+  
 
 					// Drop Moving Tetromino Vertically (Speed at which it drops changes based on level)	
 					case DROPTETR:
@@ -1374,7 +1373,11 @@ int main(int argc,char ** argv) {
 								int level = floor(gameData.lines/5);
 								gameData.level = level + 1;
 								VGA_Draw_Level(&gameData, virtual_base);
-								gameData.triggerTime = 3 * pow(.75, level);
+								//gameData.triggerTime = 3 * pow(.75, level);
+								if(level > 1)
+								{
+									gameData.triggerTime = 750 * pow(.75, level);
+								}
 							}
 
 							// Otherwise just set the tetromino, and spawn a new one.
@@ -1386,7 +1389,7 @@ int main(int argc,char ** argv) {
 								state = MOVETETR;
 							}
 
-							if(gameData.gameOver)
+							if(gameData.gameOver == true)
 							{
 								state = GAMEOVER;
 							}
@@ -1405,7 +1408,7 @@ int main(int argc,char ** argv) {
 						if((c == '1'))
 						{
 							state = GAMESETUP;
-							sleep(5);
+							sleep(2);
 						}
 						else
 						{

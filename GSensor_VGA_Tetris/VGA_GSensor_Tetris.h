@@ -65,7 +65,7 @@
 
 // Define Colors
 #define CYAN 0x07FF // I
-#define YELLOW 0xFF33 // O
+#define YELLOW 0x00FC // O
 #define PURPLE 0x8010 // T
 #define GREEN 0x4D04 // S
 #define RED 0xF800 // Z
