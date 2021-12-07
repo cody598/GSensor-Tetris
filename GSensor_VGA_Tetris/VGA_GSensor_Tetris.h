@@ -75,6 +75,31 @@
 #define GREY 0x9D13
 #define WHITE 0xFFFF
 
+/*
+ * Macros for device 'Pushbuttons', class 'altera_avalon_pio'
+ * The macros are prefixed with 'PUSHBUTTONS_'.
+ * The prefix is the slave descriptor.
+ */
+#define PUSHBUTTONS_COMPONENT_TYPE altera_avalon_pio
+#define PUSHBUTTONS_COMPONENT_NAME Pushbuttons
+#define PUSHBUTTONS_BASE 0x50
+#define PUSHBUTTONS_SPAN 16
+#define PUSHBUTTONS_END 0x5f
+#define PUSHBUTTONS_IRQ 1
+#define PUSHBUTTONS_BIT_CLEARING_EDGE_REGISTER 1
+#define PUSHBUTTONS_BIT_MODIFYING_OUTPUT_REGISTER 0
+#define PUSHBUTTONS_CAPTURE 1
+#define PUSHBUTTONS_DATA_WIDTH 4
+#define PUSHBUTTONS_DO_TEST_BENCH_WIRING 1
+#define PUSHBUTTONS_DRIVEN_SIM_VALUE 0
+#define PUSHBUTTONS_EDGE_TYPE FALLING
+#define PUSHBUTTONS_FREQ 100000000
+#define PUSHBUTTONS_HAS_IN 1
+#define PUSHBUTTONS_HAS_OUT 0
+#define PUSHBUTTONS_HAS_TRI 0
+#define PUSHBUTTONS_IRQ_TYPE EDGE
+#define PUSHBUTTONS_RESET_VALUE 0
+
 #define PHYSMEM_32(addr) (*((unsigned int *)(virtual_base + (addr & HW_REGS_MASK)))) // Char
 #define PHYSMEM_16(addr) (*((unsigned short *)(virtual_base + (addr & HW_REGS_MASK)))) // Pixel
 
