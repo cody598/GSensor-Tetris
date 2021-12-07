@@ -644,17 +644,20 @@ bool Row_Checker(short *grid, struct Game *data, void *virtual_base)
 			if(*(grid + row*COLUMNS + col) == 0) clear = false;
 		}
 
-		//***********NEED TO FIX ROW DELETION**********//
-		// If the row is full and must be cleared. 
+		// If the row is full and must be cleared.
 		if(clear)
 		{
-			printf("Clearing Should Occur\n");
 			linesCleared++;
-			for(col = 0; col < COLUMNS; col++)
+			//Shift all rows on top the cleared one down 1 square.
+			for(tempRows = row; tempRows > 0; tempRows--)
 			{
-				*(grid + row*COLUMNS + col) = BLACK;
-				VGA_Draw_Tetromino_Square(row, col, BLACK, 0, virtual_base);
+				for(col = 0; col < COLUMNS; col++)
+				{
+					*(grid + tempRows*COLUMNS + col) = *(grid + (tempRows-1)*COLUMNS + col);
+				}	
 			}
+			//Reset main loop
+			row = -1;
 		}
 	}
 
@@ -663,7 +666,6 @@ bool Row_Checker(short *grid, struct Game *data, void *virtual_base)
 	{
 		if(*(grid + 0*COLUMNS + col))
 		{
-			printf("Game Over 1");
 			data->gameOver = true;
 		}
 	}
@@ -677,6 +679,56 @@ bool Row_Checker(short *grid, struct Game *data, void *virtual_base)
 	}
 	return false;
 }
+// { 
+// 	// *(gridArray + row*COLUMNS + col) Check Current Space
+// 	// *(gridArray + (i + 1)*COLUMNS + j) Check Below
+// 	int row, col, tempRows;
+// 	bool clear;
+// 	int linesCleared = 0;
+
+// 	//Iterate through the rows starting at the top.
+// 	for(row = 0; row < ROWS; row++)
+// 	{
+// 		// Check if the row is full.
+// 		clear = true;
+// 		for(col = 0; col < COLUMNS; col++)
+// 		{
+// 			if(*(grid + row*COLUMNS + col) == 0) clear = false;
+// 		}
+
+// 		//***********NEED TO FIX ROW DELETION**********//
+// 		// If the row is full and must be cleared. 
+// 		if(clear)
+// 		{
+// 			printf("Clearing Should Occur\n");
+// 			linesCleared++;
+// 			for(col = 0; col < COLUMNS; col++)
+// 			{
+// 				*(grid + row*COLUMNS + col) = BLACK;
+// 				VGA_Draw_Tetromino_Square(row, col, BLACK, 0, virtual_base);
+// 			}
+// 		}
+// 	}
+
+// 	// Check if the Game Over condition is met.
+// 	for(col = 0; col < COLUMNS; col++)
+// 	{
+// 		if(*(grid + 0*COLUMNS + col))
+// 		{
+// 			printf("Game Over 1");
+// 			data->gameOver = true;
+// 		}
+// 	}
+
+// 	data->lines += linesCleared;
+// 	data->rowCount = linesCleared;
+
+// 	if(linesCleared > 0)
+// 	{
+// 		return true;
+// 	}
+// 	return false;
+// }
 
 /****************************************************************************************
  * Rotate Tetrominoes Clockwise
@@ -1141,16 +1193,16 @@ void addRowScore(struct Game *data, int rowCount, void *virtual_base)
 	switch(rowCount)
 	{
 		case 1:
-			data->score = data->score + (40 * (data->level + 1));
+			data->score = data->score + (40 * data->level);
 			break;
 		case 2:
-			data->score = data->score + (100 * (data->level + 1));
+			data->score = data->score + (100 * data->level);
 			break;
 		case 3:
-			data->score = data->score + (300 * (data->level + 1));
+			data->score = data->score + (300 * data->level);
 			break;
 		case 4:
-			data->score = data->score + (1200 * (data->level + 1));
+			data->score = data->score + (1200 * data->level);
 			break;
 		default:
 			break;	
@@ -1217,7 +1269,7 @@ int main(int argc,char ** argv) {
 	
 	// Determine Address of pushbuttons
 	pushbutton_addr = virtual_base + ((unsigned long)( ALT_LWFPGASLVS_OFST + PUSHBUTTONS_BASE ) & (unsigned long)(HW_REGS_MASK));
-    pushButtonMask = 0x0000;
+    pushButtonMask = 0x0;
     // Unmap registers region, map onchip ram region
     if( munmap( virtual_base, HW_REGS_SPAN ) != 0 ) {
 		printf( "ERROR: munmap() failed...\n" );
@@ -1341,7 +1393,7 @@ int main(int argc,char ** argv) {
 						milli_seconds = 1000 * gameData.triggerTime;
 						start_time = clock();
 						pushButtonMask = *(uint32_t *)pushbutton_addr;
-						printf("Mask: %d", pushButtonMask);
+						printf("Mask: %h", pushButtonMask);
 						do
 						{
 							if(shiftType == 1)
@@ -1359,10 +1411,10 @@ int main(int argc,char ** argv) {
 								set =Tetromino_Shift(gridArray, &movingTet, 3, virtual_base);
 								shiftType = 0;
 							}
-							if(pushButtonMask == 0x0001)
+							if(pushButtonMask == 0x8)
 							{
 								set = VGA_Rotate_Tetromino(gridArray, &movingTet, virtual_base);
-								pushButtonMask == 0x0000;
+								pushButtonMask == 0x0;
 							}
 						} while(clock() < start_time + milli_seconds);// looping till required time is not achieved
 						// NEED TO IMPLEMENT ROTATION BUTTON CHECK
@@ -1387,11 +1439,11 @@ int main(int argc,char ** argv) {
 								int level = floor(gameData.lines/5);
 								gameData.level = level + 1;
 								VGA_Draw_Level(&gameData, virtual_base);
-								//gameData.triggerTime = 3 * pow(.75, level);
 								if(level > 1)
 								{
-									gameData.triggerTime = 750 * pow(.75, level);
+									gameData.triggerTime = 1000 * pow(.75, level);
 								}
+								state = DRAWGRID;
 							}
 
 							// Otherwise just set the tetromino, and spawn a new one.
