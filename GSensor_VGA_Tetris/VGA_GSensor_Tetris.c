@@ -1392,8 +1392,9 @@ int main(int argc,char ** argv) {
 					case MOVETETR:
 						milli_seconds = 1000 * gameData.triggerTime;
 						start_time = clock();
-						pushButtonMask = *(uint32_t *)pushbutton_addr;
-						printf("Mask: %h", pushButtonMask);
+						pushButtonMask = *(int)(pushbutton_addr);
+						//pushButtonMask = *(int)(pushbutton_addr);
+						printf("Mask: %d", pushButtonMask);
 						do
 						{
 							if(shiftType == 1)
@@ -1411,7 +1412,7 @@ int main(int argc,char ** argv) {
 								set =Tetromino_Shift(gridArray, &movingTet, 3, virtual_base);
 								shiftType = 0;
 							}
-							if(pushButtonMask == 0x8)
+							if(pushButtonMask == 0x8) // 1_0_0_0 KEY3 Should Rotate
 							{
 								set = VGA_Rotate_Tetromino(gridArray, &movingTet, virtual_base);
 								pushButtonMask == 0x0;
