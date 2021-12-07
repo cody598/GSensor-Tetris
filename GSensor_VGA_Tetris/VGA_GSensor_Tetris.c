@@ -17,6 +17,9 @@
 #include "VGA_GSensor_Tetris.h"
 #include "hwlib.h"
 #include <time.h>
+#include "socal/socal.h"
+#include "socal/hps.h"
+#include "socal/alt_gpio.h"
 
 /****************************************************************************************
  * Tetromino Struct
@@ -1173,17 +1176,18 @@ int main(int argc,char ** argv) {
     int fd, file, i, j;
 	const char *filename = "/dev/i2c-0";
 	uint8_t id;
-	bool bSuccess, set = false ,run = true;
 	const int mg_per_digi = 4;
 	uint16_t szXYZ[3];
 	int shiftType = 0, state = 0;
-	clock_t before = clock();
-	int msec = 0;
+
 	// Converting time into milli_seconds
-	int milli_seconds;
+	int milli_seconds, msec = 0, pushButtonMask;
+	void *pushbutton_addr;
+	clock_t before = clock();
+	bool bSuccess, set = false , run = true;
 	// Storing start time
 	clock_t start_time = clock();
-
+	
 	/* Game Variables */
 	bool changed = false;
 	short *gridArray = malloc(ROWS * COLUMNS * sizeof(short));	// Tetromino Square Grid
@@ -1210,7 +1214,10 @@ int main(int argc,char ** argv) {
 	// Set framebuffer addr to beginning of the SRAM
     PHYSMEM_32(0xff203024) = 0xc8000000;
     PHYSMEM_32(0xff203020) = 0xc8000000;
-    
+	
+	// Determine Address of pushbuttons
+	pushbutton_addr = virtual_base + ((unsigned long)( ALT_LWFPGASLVS_OFST + PUSHBUTTONS_BASE ) & (unsigned long)(HW_REGS_MASK));
+    pushButtonMask = 0x0000;
     // Unmap registers region, map onchip ram region
     if( munmap( virtual_base, HW_REGS_SPAN ) != 0 ) {
 		printf( "ERROR: munmap() failed...\n" );
@@ -1333,22 +1340,29 @@ int main(int argc,char ** argv) {
 					case MOVETETR:
 						milli_seconds = 1000 * gameData.triggerTime;
 						start_time = clock();
+						pushButtonMask = *(uint32_t *)pushbutton_addr;
+						printf("Mask: %d", pushButtonMask);
 						do
 						{
 							if(shiftType == 1)
 							{
-								Tetromino_Shift(gridArray, &movingTet, 1, virtual_base);
+								set = Tetromino_Shift(gridArray, &movingTet, 1, virtual_base);
 								shiftType = 0;
 							}
 							if(shiftType == 2)
 							{
-								Tetromino_Shift(gridArray, &movingTet, 2, virtual_base);
+								set = Tetromino_Shift(gridArray, &movingTet, 2, virtual_base);
 								shiftType = 0;
 							}
 							if(shiftType == 3)
 							{
-								Tetromino_Shift(gridArray, &movingTet, 3, virtual_base);
+								set =Tetromino_Shift(gridArray, &movingTet, 3, virtual_base);
 								shiftType = 0;
+							}
+							if(pushButtonMask == 0x0001)
+							{
+								set = VGA_Rotate_Tetromino(gridArray, &movingTet, virtual_base);
+								pushButtonMask == 0x0000;
 							}
 						} while(clock() < start_time + milli_seconds);// looping till required time is not achieved
 						// NEED TO IMPLEMENT ROTATION BUTTON CHECK
