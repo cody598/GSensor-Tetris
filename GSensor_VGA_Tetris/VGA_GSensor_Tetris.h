@@ -64,13 +64,13 @@
 
 
 // Define Colors
-#define CYAN 0x25F8 // I
-#define BLUE 0x20F8 // J
-#define ORANGE 0xDAE7 // L
-#define YELLOW 0xFFE7 // O
-#define GREEN 0x0404 // S
-#define PURPLE 0xF81E // T
-#define RED 0xC000 // Z
+#define CYAN 0x07FF // I
+#define BLUE 0xABC4 // J
+#define ORANGE 0xFD20 // L
+#define YELLOW 0x0BFC // O
+#define PURPLE 0x3ACB  // S
+#define GREEN 0xF81E // T
+#define RED 0xF684  // Z
 
 #define BLACK 0x0000 
 #define GREY 0x9D13
@@ -101,6 +101,7 @@
 #define PUSHBUTTONS_IRQ_TYPE EDGE
 #define PUSHBUTTONS_RESET_VALUE 0
 
+#define PHYSMEM_32_REGS(addr) (*((unsigned int *)(regs_base + (addr & HW_REGS_MASK)))) // Registers macro
 #define PHYSMEM_32(addr) (*((unsigned int *)(virtual_base + (addr & HW_REGS_MASK)))) // Char
 #define PHYSMEM_16(addr) (*((unsigned short *)(virtual_base + (addr & HW_REGS_MASK)))) // Pixel
 

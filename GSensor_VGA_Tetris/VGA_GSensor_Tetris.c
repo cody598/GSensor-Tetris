@@ -264,15 +264,15 @@ void VGA_Draw_Tetromino_Square(int xgrid, int ygrid, short color, int choice, vo
 	{
 		xPixelTopLeftOuter = PLAYLEFTOFFSET +(xgrid * SQUAREWIDTH);
 		yPixelTopLeftOuter = ygrid * SQUAREHEIGHT;
-		xPixelTopLeftInner = xPixelTopLeftOuter + 1;
-		yPixelTopLeftInner = yPixelTopLeftOuter + 2;
+		xPixelTopLeftInner = xPixelTopLeftOuter + 2;
+		yPixelTopLeftInner = yPixelTopLeftOuter + 4;
 	}
 	if(xgrid < 4 && ygrid < 4 && choice == 1)
 	{
 		xPixelTopLeftOuter = NEXTPIECEPIXELLEFTOFFSET + (xgrid * SQUAREWIDTH);
 		yPixelTopLeftOuter = NEXTPIECEPIXELTOPOFFSET + (ygrid * SQUAREHEIGHT);
-		xPixelTopLeftInner = xPixelTopLeftOuter + 1;
-		yPixelTopLeftInner = yPixelTopLeftOuter + 2;
+		xPixelTopLeftInner = xPixelTopLeftOuter + 2;
+		yPixelTopLeftInner = yPixelTopLeftOuter + 4;
 	}
 
 	if(color == 0)
@@ -284,9 +284,7 @@ void VGA_Draw_Tetromino_Square(int xgrid, int ygrid, short color, int choice, vo
 		VGA_box(xPixelTopLeftOuter, yPixelTopLeftOuter, xPixelTopLeftOuter + XBOTTOMRIGHTOUTEROFFSET, yPixelTopLeftOuter + YBOTTOMRIGHTOUTEROFFSET, WHITE, virtual_base); 
 		VGA_box(xPixelTopLeftInner, yPixelTopLeftInner, xPixelTopLeftInner + XBOTTOMRIGHTINNEROFFSET, yPixelTopLeftInner + YBOTTOMRIGHTINNEROFFSET, color, virtual_base);
 	}
-	
-	VGA_box(xPixelTopLeftOuter, yPixelTopLeftOuter, xPixelTopLeftOuter + XBOTTOMRIGHTOUTEROFFSET, yPixelTopLeftOuter + YBOTTOMRIGHTOUTEROFFSET, WHITE, virtual_base); 
-	VGA_box(xPixelTopLeftInner, yPixelTopLeftInner, xPixelTopLeftInner + XBOTTOMRIGHTINNEROFFSET, yPixelTopLeftInner + YBOTTOMRIGHTINNEROFFSET, color, virtual_base); 
+
 }
 
 
@@ -386,7 +384,7 @@ void VGA_DrawGameOverScreen(struct Game *data, void *virtual_base)
     VGA_text (11, SCORETOPOFFSET+4,"| |_\\ \\| | | || |  | || |___  \\ \\_/ /\\ \\_/ / |___| |\\ \\|_|_|", virtual_base);
     VGA_text (11, SCORETOPOFFSET+5," \\____/\\_| |_/\\_|  |_/\\____/   \\___/  \\___/\\____/\\_| \\_(_|_)", virtual_base);
 	VGA_text (35, SCORETOPOFFSET+8, "SCORE:", virtual_base);
-	VGA_text (41, SCORETOPOFFSET+8, score, virtual_base);
+	VGA_text (42, SCORETOPOFFSET+8, score, virtual_base);
 	VGA_text (23, SCORETOPOFFSET+10,"PRESS 1 THEN ENTER TO RESTART", virtual_base);
 	VGA_text (23, SCORETOPOFFSET+12,"OTHERWISE PRESS ANYTHING ELSE", virtual_base);
 }
@@ -527,7 +525,7 @@ void VGA_Draw_Next_Tetromino(int tetrominoChoice, int gridChoice, struct Tetromi
 			break;
 		case 5:
 			// Draw S Tetromino
-			color = RED;
+			color = PURPLE;
 			if(gridChoice == 0)
 			{
 				for(i = 0; i < 2; i++)
@@ -560,7 +558,7 @@ void VGA_Draw_Next_Tetromino(int tetrominoChoice, int gridChoice, struct Tetromi
 			break;
 		case 6:
 			// Draw T Tetromino
-			color = YELLOW;
+			color = GREEN;
 			if(gridChoice == 0)
 			{
 				for(i = 3; i < 6; i++)
@@ -679,56 +677,6 @@ bool Row_Checker(short *grid, struct Game *data, void *virtual_base)
 	}
 	return false;
 }
-// { 
-// 	// *(gridArray + row*COLUMNS + col) Check Current Space
-// 	// *(gridArray + (i + 1)*COLUMNS + j) Check Below
-// 	int row, col, tempRows;
-// 	bool clear;
-// 	int linesCleared = 0;
-
-// 	//Iterate through the rows starting at the top.
-// 	for(row = 0; row < ROWS; row++)
-// 	{
-// 		// Check if the row is full.
-// 		clear = true;
-// 		for(col = 0; col < COLUMNS; col++)
-// 		{
-// 			if(*(grid + row*COLUMNS + col) == 0) clear = false;
-// 		}
-
-// 		//***********NEED TO FIX ROW DELETION**********//
-// 		// If the row is full and must be cleared. 
-// 		if(clear)
-// 		{
-// 			printf("Clearing Should Occur\n");
-// 			linesCleared++;
-// 			for(col = 0; col < COLUMNS; col++)
-// 			{
-// 				*(grid + row*COLUMNS + col) = BLACK;
-// 				VGA_Draw_Tetromino_Square(row, col, BLACK, 0, virtual_base);
-// 			}
-// 		}
-// 	}
-
-// 	// Check if the Game Over condition is met.
-// 	for(col = 0; col < COLUMNS; col++)
-// 	{
-// 		if(*(grid + 0*COLUMNS + col))
-// 		{
-// 			printf("Game Over 1");
-// 			data->gameOver = true;
-// 		}
-// 	}
-
-// 	data->lines += linesCleared;
-// 	data->rowCount = linesCleared;
-
-// 	if(linesCleared > 0)
-// 	{
-// 		return true;
-// 	}
-// 	return false;
-// }
 
 /****************************************************************************************
  * Rotate Tetrominoes Clockwise
@@ -742,7 +690,6 @@ bool VGA_Rotate_Tetromino(short *gridArray, struct Tetromino * tetr, void *virtu
 	newRotation = tetr->rotation;
 	tetrominoChoice = tetr->tetrominoNumber;
 	
-
 	if(tetrominoChoice == 1)
 	{
 		// Rotate I Tetromino
@@ -1044,7 +991,8 @@ bool VGA_Rotate_Tetromino(short *gridArray, struct Tetromino * tetr, void *virtu
 	
 	// Apply changes if the rotation is valid.
 	if(change)
-	{			
+	{	
+		printf("I'm Tryna Fucking Rotate'");
 		//Delete old tetromino
 		for(i = 0; i < 4; i++)
 		{
@@ -1075,14 +1023,6 @@ bool Tetromino_Shift(short *gridArray, struct Tetromino * movingTetptr, int shif
 	int newx[4], newy[4];
 	int i;
 	bool change = true, set = false;
-
-	//////////////////////////DEBUG	
-	printf("OLD\n");
-	for(i = 0 ; i<4; i++)
-	{
-		printf("X%d: %d, ",i ,movingTetptr->x[i]);
-		printf("Y%d: %d\n",i ,movingTetptr->y[i]);
-	}
 
 	switch(shiftType)
 	{		
@@ -1125,7 +1065,6 @@ bool Tetromino_Shift(short *gridArray, struct Tetromino * movingTetptr, int shif
 			break;
 	}
 
-	printf("Bound Checking\n");
 	// Bound checking for the translation of the Tetromino
 	for(i = 0; i < 4; i++)
 	{
@@ -1152,7 +1091,6 @@ bool Tetromino_Shift(short *gridArray, struct Tetromino * movingTetptr, int shif
 		}			
 	}
 
-	printf("Apply changes\n");
 	// Apply changes if the rotation is valid.
 	if(change)
 	{	
@@ -1224,13 +1162,15 @@ void drawDebugGrid( void * virtual_base)
 
 int main(int argc,char ** argv) {
 	
-    void *virtual_base;
+    void * virtual_base;
+	void * regs_base;
     int fd, file, i, j;
 	const char *filename = "/dev/i2c-0";
 	uint8_t id;
 	const int mg_per_digi = 4;
 	uint16_t szXYZ[3];
 	int shiftType = 0, state = 0;
+	bool rotated = false;
 
 	// Converting time into milli_seconds
 	int milli_seconds, msec = 0, pushButtonMask;
@@ -1242,7 +1182,7 @@ int main(int argc,char ** argv) {
 	
 	/* Game Variables */
 	bool changed = false;
-	short *gridArray = malloc(ROWS * COLUMNS * sizeof(short));	// Tetromino Square Grid
+	short *gridArray = malloc(ROWS * COLUMNS * sizeof(short));	// Tetromino D Grid
 	struct Tetromino movingTet;	// Tetromino moving on the screen
 	struct Tetromino nextTet;	// Tetromino to be dropped next
 	struct Game gameData;	// Game Data
@@ -1256,7 +1196,7 @@ int main(int argc,char ** argv) {
 		return( 1 );
 	}
     
-	virtual_base = mmap( NULL, HW_REGS_SPAN, ( PROT_READ | PROT_WRITE ), MAP_SHARED, fd, HW_REGS_BASE );
+	regs_base = mmap( NULL, HW_REGS_SPAN, ( PROT_READ | PROT_WRITE ), MAP_SHARED, fd, HW_REGS_BASE );
 	if( virtual_base == MAP_FAILED ) {
 		printf( "ERROR: mmap() failed...\n" );
 		close( fd );
@@ -1264,24 +1204,19 @@ int main(int argc,char ** argv) {
 	}
 	
 	// Set framebuffer addr to beginning of the SRAM
-    PHYSMEM_32(0xff203024) = 0xc8000000;
-    PHYSMEM_32(0xff203020) = 0xc8000000;
-	
-	// Determine Address of pushbuttons
-	pushbutton_addr = virtual_base + ((unsigned long)( ALT_LWFPGASLVS_OFST + PUSHBUTTONS_BASE ) & (unsigned long)(HW_REGS_MASK));
-    pushButtonMask = 0x0;
-    // Unmap registers region, map onchip ram region
-    if( munmap( virtual_base, HW_REGS_SPAN ) != 0 ) {
-		printf( "ERROR: munmap() failed...\n" );
-		close( fd );
-		return( 1 );
-	}
+    PHYSMEM_32_REGS(0xff203024) = 0xc8000000;
+    PHYSMEM_32_REGS(0xff203020) = 0xc8000000;
+
     virtual_base = mmap( NULL, HW_REGS_SPAN, ( PROT_READ | PROT_WRITE ), MAP_SHARED, fd, HW_OCRAM_BASE );
 	if( virtual_base == MAP_FAILED ) {
 		printf( "ERROR: mmap() failed...\n" );
 		close( fd );
 		return( 1 );
 	}
+
+	// Determine Address of pushbuttons
+	pushbutton_addr = regs_base + ((unsigned long)( ALT_LWFPGASLVS_OFST + PUSHBUTTONS_BASE ) & (unsigned long)(HW_REGS_MASK));
+    pushButtonMask = 0x0;
 	
 	// open bus
 	if ((file = open(filename, O_RDWR)) < 0) {
@@ -1320,7 +1255,16 @@ int main(int argc,char ** argv) {
 	if(c == '1')
 	{
 		while(bSuccess && run)
-		{
+		{			
+			pushButtonMask = *(uint32_t *)pushbutton_addr;
+
+			// If button not pressed, reset debounce flag.
+			if(rotated && pushButtonMask == 0)
+			{
+				printf("Went LOW Can Rotate Again");
+				rotated = false;
+			}
+
 			if (ADXL345_IsDataReady(file))
 			{
 				bSuccess = ADXL345_XYZ_Read(file, szXYZ);
@@ -1392,11 +1336,10 @@ int main(int argc,char ** argv) {
 					case MOVETETR:
 						milli_seconds = 1000 * gameData.triggerTime;
 						start_time = clock();
-						pushButtonMask = *(int)(pushbutton_addr);
-						//pushButtonMask = *(int)(pushbutton_addr);
-						printf("Mask: %d", pushButtonMask);
+						printf("Mask: %h", pushButtonMask);
 						do
 						{
+							// Translation of Tetromino
 							if(shiftType == 1)
 							{
 								set = Tetromino_Shift(gridArray, &movingTet, 1, virtual_base);
@@ -1412,13 +1355,18 @@ int main(int argc,char ** argv) {
 								set =Tetromino_Shift(gridArray, &movingTet, 3, virtual_base);
 								shiftType = 0;
 							}
-							if(pushButtonMask == 0x8) // 1_0_0_0 KEY3 Should Rotate
-							{
-								set = VGA_Rotate_Tetromino(gridArray, &movingTet, virtual_base);
-								pushButtonMask == 0x0;
+
+							// Rotation of Tetromino
+							if(!rotated && pushButtonMask == 0x01) // 0_0_0_1 KEY0 Should Rotate
+							{				
+									printf("\n-------------Rotate PLZ------------\n");
+									set = VGA_Rotate_Tetromino(gridArray, &movingTet, virtual_base);
+									pushButtonMask == 0x0;
+									rotated = true;
 							}
 						} while(clock() < start_time + milli_seconds);// looping till required time is not achieved
-						// NEED TO IMPLEMENT ROTATION BUTTON CHECK
+						
+						// Change to Drop State
 						printf("Clock Trigger\n");
 						state = DROPTETR;
 						break;
@@ -1510,7 +1458,7 @@ int main(int argc,char ** argv) {
 		//VGA_Draw_Next_Tetromino(0, MAINGRID, &movingTet, virtual_base);
 
 		//tetromino movement testing
-		for(i = 1; i < 8; i++)
+		//for(i = 1; i < 8; i++)
 		// {
 		// 	VGA_Clear(virtual_base);
 		// 	VGA_Tetris_Setup(&gameData, virtual_base);
@@ -1555,6 +1503,13 @@ int main(int argc,char ** argv) {
 	
 	if( munmap( virtual_base, HW_REGS_SPAN ) != 0 ) 
 	{
+		printf( "ERROR: munmap() failed...\n" );
+		close( fd );
+		return( 1 );
+	}
+
+	// Unmap onchip ram region
+    if( munmap( virtual_base, HW_OCRAM_BASE ) != 0 ) {
 		printf( "ERROR: munmap() failed...\n" );
 		close( fd );
 		return( 1 );
