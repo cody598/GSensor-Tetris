@@ -686,6 +686,12 @@ bool VGA_Rotate_Tetromino(short *gridArray, struct Tetromino * tetr, void *virtu
 	int newx[4], newy[4];
 	int i, newRotation, tetrominoChoice;
 
+	printf("ROTATION OLD:\n");
+	for(i = 0; i<4;i++)
+	{
+		printf("X[%d]:%d , Y[%d]:%d\n",i,tetr->x[i],i,tetr->y[i]);
+	}
+
 	bool change = true, set = false;
 	newRotation = tetr->rotation;
 	tetrominoChoice = tetr->tetrominoNumber;
@@ -840,7 +846,6 @@ bool VGA_Rotate_Tetromino(short *gridArray, struct Tetromino * tetr, void *virtu
 	else if(tetrominoChoice == 4)
 	{
 		// Do Nothing
-		break;
 	}
 
 	else if(tetrominoChoice == 5)
@@ -986,35 +991,45 @@ bool VGA_Rotate_Tetromino(short *gridArray, struct Tetromino * tetr, void *virtu
 			break;
 		}
 		// Check if space is taken.
-		else if(*(gridArray + newy[i]*COLUMNS + newx[i]) != BLACK))                   
+		else if(*(gridArray + newy[i]*COLUMNS + newx[i]) != BLACK)                   
 		{
 			change = false;
 		}
+	}
+
+	//debug
+	printf("ROTATION NEW:\n");
+	for(i = 0; i<4;i++)
+	{
+		printf("X[%d]:%d , Y[%d]:%d\n",i,newx[i],i,newy[i]);
 	}
 	
 	// Apply changes if the rotation is valid.
 	if(change)
 	{	
-		printf("I'm Tryna Fucking Rotate'");
+		printf("Trying to rotate\n'");
 		//Delete old tetromino
 		for(i = 0; i < 4; i++)
 		{
 			VGA_Draw_Tetromino_Square(tetr->x[i], tetr->y[i], 0, MAINGRID, virtual_base);
 		}
 
+		//Apply changes
 		for(i = 0; i < 4; i++)
 		{
-		// 	printf("X:%d,Y:%d\n", newx[i], newy[i]);
 			tetr->x[i] = newx[i];
 			tetr->y[i] = newy[i];
 			VGA_Draw_Tetromino_Square(tetr->x[i], tetr->y[i], tetr->color, MAINGRID, virtual_base);	
 		}
 		tetr->rotation = newRotation;
 	}
+	//No rotation
 	else 
 	{
-		printf("DEBUG: No Rotation\n");	//DEBUG
+		printf("------DEBUG: No Rotation------\n");	//DEBUG
 	}
+
+
 	return set;
 }
 
@@ -1165,6 +1180,7 @@ void drawDebugGrid( void * virtual_base)
 
 int main(int argc,char ** argv) {
 	
+	/* Program variables */
     void * virtual_base;
 	void * regs_base;
     int fd, file, i, j;
@@ -1173,15 +1189,16 @@ int main(int argc,char ** argv) {
 	const int mg_per_digi = 4;
 	uint16_t szXYZ[3];
 	int shiftType = 0, state = 0;
-	bool rotated = false;
+	bool buttonFlag = false;
+	int16_t xg, yg;
 
-	// Converting time into milli_seconds
-	int milli_seconds, msec = 0, pushButtonMask;
+	/* Timer variables */
+	int dropTime, msec = 0, pushButtonMask;
 	void *pushbutton_addr;
 	clock_t before = clock();
-	bool bSuccess, set = false , run = true;
-	// Storing start time
-	clock_t start_time = clock();
+	bool bSuccess, run = true, shiftTimerFlag = true;
+	clock_t start_time;
+	clock_t shiftTimer;
 	
 	/* Game Variables */
 	bool changed = false;
@@ -1190,9 +1207,7 @@ int main(int argc,char ** argv) {
 	struct Tetromino nextTet;	// Tetromino to be dropped next
 	struct Game gameData;	// Game Data
 	srand(time(0)); // Start RNG
-	
-	// Dyanmic Box Variables
-	int16_t xg, yg;
+
 	
 	if( ( fd = open( "/dev/mem", ( O_RDWR | O_SYNC ) ) ) == -1 ) {
 		printf( "ERROR: could not open \"/dev/mem\"...\n" );
@@ -1257,187 +1272,204 @@ int main(int argc,char ** argv) {
 	// Start Tetris
 	if(c == '1')
 	{
-		while(bSuccess && run)
-		{			
-			pushButtonMask = *(uint32_t *)pushbutton_addr;
-
-			// If button not pressed, reset debounce flag.
-			if(rotated && pushButtonMask == 0)
+		while(run)
+		{		
+			switch(state)
 			{
-				printf("Went LOW Can Rotate Again");
-				rotated = false;
-			}
+				// Start Screen
+				case STARTSCREEN:
+						VGA_Clear(virtual_base);
+						VGA_DrawStartScreen(virtual_base);			
+						sleep(3);
+						state = GAMESETUP;
+					break;
 
-			if (ADXL345_IsDataReady(file))
-			{
-				bSuccess = ADXL345_XYZ_Read(file, szXYZ);
+				// Initialize Grid and Scores
+				case GAMESETUP:
+					VGA_Tetris_Setup(&gameData, virtual_base);
+
+					VGA_Draw_Next_Tetromino(((rand() % 7) + 1), NEXTPIECEGRID, &nextTet, virtual_base);	
+					// Instantiate Grid
+					for(i = 0; i < ROWS; i++)
+					{
+						for(j = 0; j < COLUMNS; j++)
+						{
+							*(gridArray + i*COLUMNS + j) = BLACK; 
+							printf("%d ", *(gridArray + i*COLUMNS + j));
+						}
+						printf("\n");
+					}
+					state = DRAWGRID;
+					break;		
+
+				// Redraw grid and spawn the next tetromino.
+				case DRAWGRID:
+					// Redraw grid based on what is stored in the grid array.
+					for(i = 0; i < ROWS; i++)
+					{
+						for(j = 0; j < COLUMNS; j++)
+						{
+							VGA_Draw_Tetromino_Square(j, i, *(gridArray + i*COLUMNS + j), MAINGRID, virtual_base);
+						}
+					}
+						
+					//Spawn next tetromino.
+					VGA_Draw_Next_Tetromino(nextTet.tetrominoNumber , MAINGRID, &movingTet, virtual_base);
+					VGA_Draw_Next_Tetromino(((rand() % 7) + 1), NEXTPIECEGRID, &nextTet, virtual_base);
+					state = MOVETETR;
+					break;
+
+				// Handle movement of tetrominoes by the user	
+				case MOVETETR:
+
+					//Timer
+					dropTime = 85 * gameData.triggerTime;
+					start_time = clock();					
+					shiftTimerFlag = true;
+
+					// Movement loop
+					do
+					{
+						// Get button state
+						pushButtonMask = *(uint32_t *)pushbutton_addr;
+						// If button not pressed, reset debounce flag.
+						if(buttonFlag && pushButtonMask == 0)
+						{
+							buttonFlag = false;
+						}
+
+						// Translation of Tetromino
+						if(shiftTimerFlag && shiftType == 1)
+						{
+							Tetromino_Shift(gridArray, &movingTet, 1, virtual_base);
+							shiftTimer = clock();
+							shiftTimerFlag = false;
+							shiftType = 0;
+						}
+						if(shiftTimerFlag && shiftType == 2)
+						{
+							Tetromino_Shift(gridArray, &movingTet, 2, virtual_base);
+							shiftTimer = clock();
+							shiftTimerFlag = false;
+							shiftType = 0;
+						}
+						if(shiftTimerFlag && shiftType == 3)
+						{
+							Tetromino_Shift(gridArray, &movingTet, 3, virtual_base);
+							shiftTimer = clock();
+							shiftTimerFlag = false;
+							shiftType = 0;
+						}
+						// Rotation of Tetromino
+						if(!buttonFlag && pushButtonMask == 0x01) // 0_0_0_1 KEY0 Should Rotate
+						{				
+							VGA_Rotate_Tetromino(gridArray, &movingTet, virtual_base);
+							pushButtonMask == 0x0;
+							buttonFlag = true;
+						}
+
+						if (ADXL345_IsDataReady(file))
+						{
+							bSuccess = ADXL345_XYZ_Read(file, szXYZ);
 				
-				if (bSuccess){
-					xg = (int16_t) szXYZ[0]*mg_per_digi;
-					yg = (int16_t) szXYZ[1]*mg_per_digi;					
-					// Movement Detection
-					if(xg < -200){
-						changed = true;
-						shiftType = 1; // Shift Left State
-					}
-					else if(xg > 200){
-						changed = true;
-						shiftType = 2; // Shift Right State
-					}
-					else if(yg < -200){			
-						changed = true;
-						shiftType = 3; // Shift Down State
-					}
-				}
-
-				switch(state)
-				{
-					// Start Screen
-					case STARTSCREEN:
-							VGA_Clear(virtual_base);
-							VGA_DrawStartScreen(virtual_base);			
-							sleep(3);
-							state = GAMESETUP;
-						break;
-
-					// Initialize Grid and Scores
-					case GAMESETUP:
-						VGA_Tetris_Setup(&gameData, virtual_base);
-
-						VGA_Draw_Next_Tetromino(((rand() % 7) + 1), NEXTPIECEGRID, &nextTet, virtual_base);	
-						// Instantiate Grid
-						for(i = 0; i < ROWS; i++)
-						{
-							for(j = 0; j < COLUMNS; j++)
+							if (bSuccess)
 							{
-								*(gridArray + i*COLUMNS + j) = BLACK; 
-								printf("%d ", *(gridArray + i*COLUMNS + j));
-							}
-							printf("\n");
-						}
-						state = DRAWGRID;
-						break;		
-
-					// Redraw grid and spawn the next tetromino.
-					case DRAWGRID:
-						// Redraw grid based on what is stored in the grid array.
-						for(i = 0; i < ROWS; i++)
-						{
-							for(j = 0; j < COLUMNS; j++)
-							{
-								VGA_Draw_Tetromino_Square(j, i, *(gridArray + i*COLUMNS + j), MAINGRID, virtual_base);
+								xg = (int16_t) szXYZ[0]*mg_per_digi;
+								yg = (int16_t) szXYZ[1]*mg_per_digi;					
+								// Movement Detection
+								if(xg < -200)
+								{
+									changed = true;
+									shiftType = 1; // Shift Left State
+								}
+								else if(xg > 200)
+								{
+									changed = true;
+									shiftType = 2; // Shift Right State
+								}
+								else if(yg < -200)
+								{			
+									changed = true;
+									shiftType = 3; // Shift Down State
+								}
 							}
 						}
-						
-						//Spawn next tetromino.
-						VGA_Draw_Next_Tetromino(nextTet.tetrominoNumber , MAINGRID, &movingTet, virtual_base);
-						VGA_Draw_Next_Tetromino(((rand() % 7) + 1), NEXTPIECEGRID, &nextTet, virtual_base);
-						state = MOVETETR;
-						break;
 
-					// Allow Rotational and Translational movement of the Tetromino 	
-					case MOVETETR:
-						milli_seconds = 1000 * gameData.triggerTime;
-						start_time = clock();
-						printf("Mask: %h", pushButtonMask);
-						do
+						// Horizontal Movement Delay
+						if(clock() > shiftTimer + 10000)
 						{
-							// Translation of Tetromino
-							if(shiftType == 1)
-							{
-								set = Tetromino_Shift(gridArray, &movingTet, 1, virtual_base);
-								shiftType = 0;
-							}
-							if(shiftType == 2)
-							{
-								set = Tetromino_Shift(gridArray, &movingTet, 2, virtual_base);
-								shiftType = 0;
-							}
-							if(shiftType == 3)
-							{
-								set =Tetromino_Shift(gridArray, &movingTet, 3, virtual_base);
-								shiftType = 0;
-							}
+							shiftTimerFlag = true;
+						}
 
-							// Rotation of Tetromino
-							if(!rotated && pushButtonMask == 0x01) // 0_0_0_1 KEY0 Should Rotate
-							{				
-									printf("\n-------------Rotate PLZ------------\n");
-									set = VGA_Rotate_Tetromino(gridArray, &movingTet, virtual_base);
-									pushButtonMask == 0x0;
-									rotated = true;
-							}
-						} while(clock() < start_time + milli_seconds);// looping till required time is not achieved
+					} while((clock() < start_time + dropTime) && bSuccess); //Movement loop end
 						
-						// Change to Drop State
-						printf("Clock Trigger\n");
-						state = DROPTETR;
-						break;
+					// Change to Drop State
+					printf("Game tick\n");
+					state = DROPTETR;
+					break;
 
   
 
-					// Drop Moving Tetromino Vertically (Speed at which it drops changes based on level)	
-					case DROPTETR:
+				// Drop Moving Tetromino Vertically (Speed at which it drops changes based on level)	
+				case DROPTETR:
 					
-						// If a tetromino is set...
-						if(Tetromino_Shift(gridArray, &movingTet, 3, virtual_base))
+					// If a tetromino is set...
+					if(Tetromino_Shift(gridArray, &movingTet, 3, virtual_base))
+					{
+						//If rows were shifted down, redraw the grid.
+						if(Row_Checker(gridArray, &gameData, virtual_base))
 						{
-							//If rows were shifted down, redraw the grid.
-							if(Row_Checker(gridArray, &gameData, virtual_base))
+							addRowScore(&gameData, gameData.rowCount, virtual_base);
+							VGA_Draw_Score(&gameData, virtual_base);
+							VGA_Draw_Line(&gameData, virtual_base);
+							int level = floor(gameData.lines/5);
+							gameData.level = level + 1;
+							VGA_Draw_Level(&gameData, virtual_base);
+							if(level > 1)
 							{
-								addRowScore(&gameData, gameData.rowCount, virtual_base);
-								VGA_Draw_Score(&gameData, virtual_base);
-								VGA_Draw_Line(&gameData, virtual_base);
-								int level = floor(gameData.lines/5);
-								gameData.level = level + 1;
-								VGA_Draw_Level(&gameData, virtual_base);
-								if(level > 1)
-								{
-									gameData.triggerTime = 1000 * pow(.75, level);
-								}
-								state = DRAWGRID;
+								gameData.triggerTime = 85 * pow(.75, level);
 							}
-
-							// Otherwise just set the tetromino, and spawn a new one.
-							else
-							{
-								//Spawn next tetromino.
-								VGA_Draw_Next_Tetromino(nextTet.tetrominoNumber , MAINGRID, &movingTet, virtual_base);
-								VGA_Draw_Next_Tetromino(((rand() % 7) + 1), NEXTPIECEGRID, &nextTet, virtual_base);	
-								state = MOVETETR;
-							}
-
-							if(gameData.gameOver == true)
-							{
-								state = GAMEOVER;
-							}
+							state = DRAWGRID;
 						}
-						else state = MOVETETR;
-						before = clock();
-						break;
 
-					// Occurs when Tetromino reaches ceiling
-					case GAMEOVER:
-						printf("Game Over\n");
-						VGA_DrawGameOverScreen(&gameData, virtual_base);
-						getchar();
-						c =	getchar();
-						// Restart Tetris
-						if((c == '1'))
-						{
-							state = GAMESETUP;
-							sleep(2);
-						}
+						// Otherwise just set the tetromino, and spawn a new one.
 						else
 						{
-							VGA_Clear(virtual_base);
-							run = false;
+							//Spawn next tetromino.
+							VGA_Draw_Next_Tetromino(nextTet.tetrominoNumber , MAINGRID, &movingTet, virtual_base);
+							VGA_Draw_Next_Tetromino(((rand() % 7) + 1), NEXTPIECEGRID, &nextTet, virtual_base);	
+							state = MOVETETR;
 						}
+
+						if(gameData.gameOver == true)
+						{
+							state = GAMEOVER;
+						}
+					}
+					else state = MOVETETR;
+					before = clock();
+					break;
+
+				// Occurs when Tetromino reaches ceiling
+				case GAMEOVER:
+					printf("Game Over\n");
+					VGA_DrawGameOverScreen(&gameData, virtual_base);
+					getchar();
+					c =	getchar();
+					// Restart Tetris
+					if((c == '1'))
+					{
+						state = GAMESETUP;
+						sleep(2);
+					}
+					else
+					{
+						VGA_Clear(virtual_base);
+						run = false;
+					}
 						
-						break;		
-				}
+					break;		
 			}
-			//usleep(delay);
 		}  
 	}
 
