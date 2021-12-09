@@ -777,7 +777,7 @@ bool VGA_Rotate_Tetromino(short *gridArray, struct Tetromino * tetr, void *virtu
 				newRotation = 1;
 				break;
 			default:
-			break;	
+				break;	
 		}
 	}
 	else if(tetrominoChoice == 3)
@@ -834,12 +834,13 @@ bool VGA_Rotate_Tetromino(short *gridArray, struct Tetromino * tetr, void *virtu
 				newRotation = 1;
 				break;
 			default:
-			break;
+				break;
 		}
 	}
 	else if(tetrominoChoice == 4)
 	{
 		// Do Nothing
+		break;
 	}
 
 	else if(tetrominoChoice == 5)
@@ -872,7 +873,7 @@ bool VGA_Rotate_Tetromino(short *gridArray, struct Tetromino * tetr, void *virtu
 				newRotation = 1;
 				break;
 			default:
-			break;
+				break;
 		}
 	}
 
@@ -928,7 +929,9 @@ bool VGA_Rotate_Tetromino(short *gridArray, struct Tetromino * tetr, void *virtu
 				newx[3] = tetr->x[3] - 1;
 				newy[3] = tetr->y[3] + 1;
 				newRotation = 1;
-			break;
+				break;
+			default:
+				break;
 		}
 	}
 
@@ -983,7 +986,7 @@ bool VGA_Rotate_Tetromino(short *gridArray, struct Tetromino * tetr, void *virtu
 			break;
 		}
 		// Check if space is taken.
-		else if(*(gridArray + newy[i]*COLUMNS + newx[i]) != BLACK);                    
+		else if(*(gridArray + newy[i]*COLUMNS + newx[i]) != BLACK))                   
 		{
 			change = false;
 		}
