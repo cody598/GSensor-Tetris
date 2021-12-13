@@ -422,7 +422,7 @@ void VGA_Draw_Next_Tetromino(int tetrominoChoice, int gridChoice, struct Tetromi
 		// Need to store current tetromino square locations.
 		case 1:
 			// Draw I Tetromino
-			color = DARKBLUE;
+			color = CYAN;
 			if(gridChoice == 0)
 			{
 				for(i = 3; i < 7; i++)
@@ -445,7 +445,7 @@ void VGA_Draw_Next_Tetromino(int tetrominoChoice, int gridChoice, struct Tetromi
 			break;
 		case 2:
 			// Draw J Tetromino
-			color = PINK;
+			color = BLUE;
 			if(gridChoice == 0)
 			{
 				tetr->x[0] = 5;
@@ -471,7 +471,7 @@ void VGA_Draw_Next_Tetromino(int tetrominoChoice, int gridChoice, struct Tetromi
 			break;
 		case 3:
 			// Draw L Tetromino
-			color = YELLOW;
+			color = ORANGE;
 			if(gridChoice == 0)
 			{		
 				for(i = 0; i < 3; i++)
@@ -496,7 +496,7 @@ void VGA_Draw_Next_Tetromino(int tetrominoChoice, int gridChoice, struct Tetromi
 			break;
 		case 4:
 			// Draw O Tetromino
-			color = GREEN;
+			color = YELLOW;
 			if(gridChoice == 0)
 			{
 				for(i = 0; i < 2; i++)
@@ -525,7 +525,7 @@ void VGA_Draw_Next_Tetromino(int tetrominoChoice, int gridChoice, struct Tetromi
 			break;
 		case 5:
 			// Draw S Tetromino
-			color = LIGHTBLUE;
+			color = PURPLE;
 			if(gridChoice == 0)
 			{
 				for(i = 0; i < 2; i++)
@@ -558,7 +558,7 @@ void VGA_Draw_Next_Tetromino(int tetrominoChoice, int gridChoice, struct Tetromi
 			break;
 		case 6:
 			// Draw T Tetromino
-			color = LIGHTGREEN;
+			color = GREEN;
 			if(gridChoice == 0)
 			{
 				for(i = 3; i < 6; i++)
@@ -585,7 +585,7 @@ void VGA_Draw_Next_Tetromino(int tetrominoChoice, int gridChoice, struct Tetromi
 			break;
 		case 7:
 			// Draw Z Tetromino
-			color = ORANGE;
+			color = RED;
 			if(gridChoice == 0)
 			{
 				for(i = 0; i < 2; i++)
