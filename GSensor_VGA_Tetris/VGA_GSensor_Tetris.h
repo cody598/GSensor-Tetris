@@ -64,13 +64,13 @@
 
 
 // Define Colors
-#define CYAN 0x07FF // I
-#define BLUE 0xABC4 // J
-#define ORANGE 0xFD20 // L
-#define YELLOW 0x0BFC // O
-#define PURPLE 0x3ACB  // S
-#define GREEN 0xF81E // T
-#define RED 0xF684  // Z
+#define DARKBLUE 0x07FF // I
+#define PINK 0xABC4 // J
+#define YELLOW 0xFD20 // L
+#define GREEN 0x0BFC // O
+#define LIGHTBLUE 0x3ACB  // S
+#define NEONGREEN 0xF81E // T
+#define ORANGE 0xF684  // Z
 
 #define BLACK 0x0000 
 #define GREY 0x9D13
